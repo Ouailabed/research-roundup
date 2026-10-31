@@ -1,0 +1,21 @@
+# Every source the agent reads. To add a source, add an entry here.
+# type is rss, api or html.
+
+sources:
+  - name: NBER
+    group: research_body
+    type: rss
+    url: https://www.nber.org/rss/new.xml
+    notes: Full abstracts in the feed, but no dates.
+
+  - name: IMF
+    group: research_body
+    type: api
+    url: https://api.crossref.org/journals/1018-5941/works
+    notes: IMF Working Papers through Crossref. The IMF's own feed answered 403 to a script on 31 October 2026.
+
+  - name: BIS
+    group: research_body
+    type: rss
+    url: https://www.bis.org/doclist/wppubls.rss
+    notes: Items have dates. Descriptions are short, about 234 characters.

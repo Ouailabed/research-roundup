@@ -1,0 +1,7 @@
+# Model names live here because Groq changes its list often.
+models:
+  cheap: openai/gpt-oss-20b
+  strong: openai/gpt-oss-120b
+
+# Papers first seen before this date are kept but not analysed.
+analyse_from: "2026-09-01"

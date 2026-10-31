@@ -1,5 +1,6 @@
 beautifulsoup4==4.15.0
 feedparser==6.0.14
+groq==1.7.0
 python-dotenv==1.2.4
 PyYAML==6.0.3
 requests==2.34.2

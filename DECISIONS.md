@@ -4,6 +4,7 @@ One line for every choice: what we chose and why.
 
 - AI provider: Groq, because it has a free tier and this project is a trial.
 - Models: `openai/gpt-oss-20b` scores every paper and `openai/gpt-oss-120b` writes up the chosen papers, because the free limits are tight.
+- Groq's response headers on 31 October 2026 showed 1,000 requests a day and 8,000 tokens a minute for each model on the free tier. One paper uses about 800 tokens, so the pace is about 10 papers a minute.
 - Python 3.14 on the laptop, in GitHub Actions and on Streamlit Community Cloud, so all three behave the same.
 - Feeds and official APIs come first, because they are stable and allowed. Scraping is a last resort.
 - G10 can mean the G10 countries or the G10 currencies, so we cover both. That adds the Reserve Bank of Australia, the Reserve Bank of New Zealand and Norges Bank.

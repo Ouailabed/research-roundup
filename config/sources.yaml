@@ -20,3 +20,42 @@ sources:
     type: rss
     url: https://www.bis.org/doclist/wppubls.rss
     notes: Items have dates. Descriptions are short, about 234 characters.
+
+  - name: American Economic Review
+    group: journal
+    type: api
+    api: openalex
+    issn: 0002-8282
+    url: https://api.openalex.org/works
+    notes: OpenAlex had abstracts for 25 of 25 recent articles on 31 October 2026.
+
+  - name: Econometrica
+    group: journal
+    type: api
+    api: crossref
+    url: https://api.crossref.org/journals/0012-9682/works
+    notes: Crossref had abstracts for 20 of 25 recent articles. Its published date shows only the year, so we use its created date.
+
+  - name: Journal of Political Economy
+    group: journal
+    type: api
+    api: openalex
+    issn: 0022-3808
+    url: https://api.openalex.org/works
+    notes: Only 4 of 25 recent articles had abstracts in OpenAlex, and 0 of 25 in Crossref. Papers with no abstract are left out for that cycle.
+
+  - name: Quarterly Journal of Economics
+    group: journal
+    type: api
+    api: openalex
+    issn: 0033-5533
+    url: https://api.openalex.org/works
+    notes: OpenAlex had abstracts for 25 of 25 recent articles on 31 October 2026.
+
+  - name: Review of Economic Studies
+    group: journal
+    type: api
+    api: openalex
+    issn: 0034-6527
+    url: https://api.openalex.org/works
+    notes: OpenAlex had abstracts for 25 of 25 recent articles on 31 October 2026.

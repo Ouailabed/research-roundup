@@ -1,3 +1,4 @@
+import os
 import re
 from datetime import date, datetime, timezone
 
@@ -5,7 +6,7 @@ import feedparser
 
 from src.config import load_sources
 from src.db import connect, save_papers
-from src.fetch import contact_email, polite_get
+from src.fetch import contact_email, polite_get, safe_text
 from src.models import Paper, clean_text, clean_url, make_id
 
 
@@ -82,7 +83,37 @@ def read_crossref(source):
     return [paper_from_work(source, work) for work in items]
 
 
-READERS = {"rss": read_rss, "crossref": read_crossref}
+def rebuild_abstract(index):
+    # OpenAlex stores an abstract as {word: [positions]}, so put the words back in order.
+    if not index:
+        return ""
+    placed = sorted((position, word) for word, positions in index.items() for position in positions)
+    return " ".join(word for _, word in placed)
+
+
+def paper_from_openalex(source, work):
+    doi_url = work.get("doi") or ""
+    authors = ", ".join(entry["author"]["display_name"] for entry in work.get("authorships", []))
+    abstract = rebuild_abstract(work.get("abstract_inverted_index"))
+    doi = doi_url.removeprefix("https://doi.org/")
+    return new_paper(source, work.get("title") or "", authors, abstract, doi_url or work["id"], doi, work.get("publication_date") or "")
+
+
+def read_openalex(source):
+    params = {
+        "filter": f"primary_location.source.issn:{source['issn']}",
+        "sort": "publication_date:desc",
+        "per-page": 50,
+    }
+    if contact_email():
+        params["mailto"] = contact_email()
+    if os.getenv("OPENALEX_API_KEY"):
+        params["api_key"] = os.getenv("OPENALEX_API_KEY")
+    results = polite_get(source["url"], params=params).json()["results"]
+    return [paper_from_openalex(source, work) for work in results]
+
+
+READERS = {"rss": read_rss, "crossref": read_crossref, "openalex": read_openalex}
 
 
 def read_source(source):
@@ -95,9 +126,10 @@ def collect_all():
         try:
             papers = read_source(source)
             new = save_papers(conn, papers)
-            print(f"{source['name']}: {len(papers)} found, {new} new")
+            with_abstract = sum(1 for paper in papers if paper.abstract)
+            print(f"{source['name']}: {len(papers)} found, {new} new, {with_abstract} with abstracts")
         except Exception as error:
-            print(f"{source['name']}: failed, {error}")
+            print(f"{source['name']}: failed, {safe_text(error)}")
     conn.close()
 
 

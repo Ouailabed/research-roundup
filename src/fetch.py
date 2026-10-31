@@ -52,7 +52,15 @@ def robots_for(url):
 def polite_get(url, **kwargs):
     if not robots_for(url).can_fetch(AGENT_NAME, url):
         raise PermissionError(f"robots.txt does not allow {url}")
-    wait_for_turn(urlsplit(url).netloc)
+    host = urlsplit(url).netloc
+    wait_for_turn(host)
     response = requests.get(url, headers=headers(), timeout=30, **kwargs)
-    response.raise_for_status()
+    if not response.ok:
+        raise RuntimeError(f"{host} answered {response.status_code}")
     return response
+
+
+def safe_text(error):
+    # requests puts the full URL in its error messages, and the OpenAlex key sits in that URL.
+    key = os.getenv("OPENALEX_API_KEY", "")
+    return str(error).replace(key, "***") if key else str(error)

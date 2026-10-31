@@ -113,7 +113,8 @@ def issue_context(rows):
     for row in rows:
         paper = dict(row)
         paper["title"] = no_em_dash(paper["title"])
-        paper["published_label"] = date_label(paper["published"])
+        # Some sources date a paper ahead, and a future date looks wrong in an issue.
+        paper["published_label"] = date_label(min(paper["published"], paper["first_seen"]))
         paper["summary"] = no_em_dash(paper["summary"])
         paper["takeaways"] = [no_em_dash(line) for line in json.loads(paper["takeaways"])]
         paper["why_it_matters"] = no_em_dash(paper["why_it_matters"])

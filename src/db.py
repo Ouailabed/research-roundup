@@ -210,7 +210,7 @@ def has_writeup(conn, paper_id):
 
 def issue_papers(conn, month):
     return conn.execute(
-        """SELECT p.title, p.authors, p.source, p.published, p.url,
+        """SELECT p.title, p.authors, p.source, p.published, p.first_seen, p.url,
         w.summary, w.takeaways, w.why_it_matters, w.market_focus, w.tag_reason
         FROM issues i JOIN papers p ON p.id = i.paper_id
         JOIN writeups w ON w.paper_id = p.id

@@ -1,6 +1,6 @@
 from datetime import date
 
-from src.issue import choose_papers, date_label, last_full_month, no_em_dash
+from src.issue import choose_papers, date_label, issue_context, last_full_month, no_em_dash
 
 ROWS = [
     ("a", "NBER", "DM", 9),
@@ -50,6 +50,19 @@ def test_date_labels():
     assert date_label("2026-10-03") == "3 October 2026"
     assert date_label("2026-10") == "October 2026"
     assert date_label("2026") == "2026"
+
+
+def test_a_future_date_is_not_shown():
+    row = {
+        "title": "A paper",
+        "published": "2026-11-05",
+        "first_seen": "2026-10-31",
+        "summary": "One.",
+        "takeaways": '["a", "b", "c"]',
+        "why_it_matters": "It matters.",
+        "tag_reason": "It names Peru.",
+    }
+    assert issue_context([row])[0]["published_label"] == "31 October 2026"
 
 
 def test_em_dashes_are_removed():

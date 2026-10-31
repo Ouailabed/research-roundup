@@ -6,6 +6,11 @@ Every week it collects new papers from journals, central banks and research bodi
 
 - Live dashboard: LIVE_DASHBOARD_LINK
 - Latest newsletter: LIVE_NEWSLETTER_LINK
+- Sample issue in this repo: [site/issues/2026-10.html](site/issues/2026-10.html)
+
+| The newsletter | The dashboard |
+|---|---|
+| <img src="docs/newsletter.png" alt="The October 2026 newsletter" width="360"> | <img src="docs/dashboard.jpg" alt="The Explore papers page of the dashboard" width="480"> |
 
 ## How it works
 

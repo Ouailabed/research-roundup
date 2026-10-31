@@ -21,10 +21,26 @@ CREATE TABLE IF NOT EXISTS papers (
 )
 """
 
+HEALTH_SCHEMA = """
+CREATE TABLE IF NOT EXISTS health (
+    run_at TEXT,
+    source TEXT,
+    source_group TEXT,
+    route TEXT,
+    status TEXT,
+    found INTEGER,
+    new INTEGER,
+    missing_abstracts INTEGER,
+    note TEXT
+)
+"""
+
 
 def connect():
     conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
     conn.execute(SCHEMA)
+    conn.execute(HEALTH_SCHEMA)
     return conn
 
 
@@ -42,3 +58,20 @@ def save_papers(conn, papers):
         new += cursor.rowcount
     conn.commit()
     return new
+
+
+def count_missing_abstracts(conn, source):
+    return conn.execute("SELECT COUNT(*) FROM papers WHERE source = ? AND abstract = ''", (source,)).fetchone()[0]
+
+
+def save_health(conn, rows):
+    conn.executemany(
+        """INSERT INTO health VALUES
+        (:run_at, :source, :source_group, :route, :status, :found, :new, :missing_abstracts, :note)""",
+        rows,
+    )
+    conn.commit()
+
+
+def latest_health(conn):
+    return conn.execute("SELECT * FROM health WHERE run_at = (SELECT MAX(run_at) FROM health)").fetchall()

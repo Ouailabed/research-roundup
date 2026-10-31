@@ -6,8 +6,9 @@ import feedparser
 from bs4 import BeautifulSoup
 
 from src.config import load_sources
-from src.db import connect, known_urls, save_papers
+from src.db import connect, count_missing_abstracts, known_urls, save_health, save_papers
 from src.fetch import contact_email, polite_get, safe_text
+from src.health import print_table
 from src.models import Paper, clean_text, clean_url, make_id
 
 REPEC_PAPERS_PER_RUN = 30
@@ -145,8 +146,10 @@ def paper_from_repec(source, url):
 def read_repec(source, known):
     soup = BeautifulSoup(polite_get(source["url"]).text, "html.parser")
     links = [link["href"] for link in soup.select("b > a[href]") if link["href"].startswith("/p/")]
+    links = links[:REPEC_PAPERS_PER_RUN]
+    source["scanned"] = len(links)
     papers = []
-    for href in links[:REPEC_PAPERS_PER_RUN]:
+    for href in links:
         url = f"https://ideas.repec.org{href}"
         if url in known:
             continue
@@ -182,8 +185,12 @@ READERS = {
 }
 
 
+def route_of(source):
+    return source.get("reader") or source["type"]
+
+
 def read_source(source, known):
-    return READERS[source.get("reader") or source["type"]](source, known)
+    return READERS[route_of(source)](source, known)
 
 
 def abstract_on_page(soup):
@@ -224,20 +231,40 @@ def fill_from_pages(source, papers, known):
             print(f"{source['name']}: kept the feed text for {paper.url}, {safe_text(error)}")
 
 
+def collect_source(conn, source, known, run_at):
+    row = {
+        "run_at": run_at,
+        "source": source["name"],
+        "source_group": source["group"],
+        "route": route_of(source),
+        "status": source.get("status", "working"),
+        "found": 0,
+        "new": 0,
+        "missing_abstracts": 0,
+        "note": "",
+    }
+    if row["status"] == "not_covered":
+        row["note"] = source["notes"]
+        return row
+    try:
+        papers = read_source(source, known)
+        fill_from_pages(source, papers, known)
+        row["found"] = source.get("scanned", len(papers))
+        row["new"] = save_papers(conn, papers)
+        row["missing_abstracts"] = count_missing_abstracts(conn, source["name"])
+    except Exception as error:
+        row["status"] = "failed"
+        row["note"] = safe_text(error)
+    return row
+
+
 def collect_all():
     conn = connect()
     known = known_urls(conn)
-    for source in load_sources():
-        if source.get("status") == "not_covered":
-            continue
-        try:
-            papers = read_source(source, known)
-            fill_from_pages(source, papers, known)
-            new = save_papers(conn, papers)
-            with_abstract = sum(1 for paper in papers if paper.abstract)
-            print(f"{source['name']}: {len(papers)} found, {new} new, {with_abstract} with abstracts")
-        except Exception as error:
-            print(f"{source['name']}: failed, {safe_text(error)}")
+    run_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    rows = [collect_source(conn, source, known, run_at) for source in load_sources()]
+    save_health(conn, rows)
+    print_table(rows)
     conn.close()
 
 

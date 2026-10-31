@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS papers (
     source_group TEXT,
     published TEXT,
     first_seen TEXT,
-    fetched_at TEXT
+    fetched_at TEXT,
+    duplicate_of TEXT
 )
 """
 
@@ -41,6 +42,10 @@ def connect():
     conn.row_factory = sqlite3.Row
     conn.execute(SCHEMA)
     conn.execute(HEALTH_SCHEMA)
+    # A database made before this column existed needs it added.
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(papers)")}
+    if "duplicate_of" not in columns:
+        conn.execute("ALTER TABLE papers ADD COLUMN duplicate_of TEXT")
     return conn
 
 
@@ -52,7 +57,9 @@ def save_papers(conn, papers):
     new = 0
     for paper in papers:
         cursor = conn.execute(
-            "INSERT OR IGNORE INTO papers VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            """INSERT OR IGNORE INTO papers
+            (id, title, authors, abstract, url, doi, source, source_group, published, first_seen, fetched_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             astuple(paper),
         )
         new += cursor.rowcount

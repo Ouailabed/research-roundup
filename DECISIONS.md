@@ -13,3 +13,4 @@ One line for every choice: what we chose and why.
 - BIS abstracts come from each paper's page, because the feed often gives only the first sentence.
 - The Reserve Bank of New Zealand is not covered. Its site answers 403 to scripts, RePEc stops in 2024, and we never disguise the script as a browser.
 - Papers with no abstract stay in the database but are not analysed, as Yasmine's note on paywalls allows.
+- Two papers from different sources count as the same if their titles are more than 0.9 alike. The one with the longest abstract is kept. Same-source papers are never merged, because BPEA reuses titles like Comments and Discussion.

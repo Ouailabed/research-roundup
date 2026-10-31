@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 
 from src.config import load_sources
 from src.db import connect, count_missing_abstracts, known_urls, save_health, save_papers
+from src.dedupe import mark_duplicates
 from src.fetch import contact_email, polite_get, safe_text
 from src.health import print_table
 from src.models import Paper, clean_text, clean_url, make_id
@@ -265,6 +266,7 @@ def collect_all():
     rows = [collect_source(conn, source, known, run_at) for source in load_sources()]
     save_health(conn, rows)
     print_table(rows)
+    print(f"{len(mark_duplicates(conn))} papers are duplicates of another source's paper")
     conn.close()
 
 

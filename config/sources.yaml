@@ -19,7 +19,15 @@ sources:
     group: research_body
     type: rss
     url: https://www.bis.org/doclist/wppubls.rss
-    notes: Items have dates. Descriptions are short, about 234 characters.
+    abstract_from_page: true
+    notes: Feed descriptions were 75 to 462 characters on 31 October 2026, often just the first sentence. The full abstract is on each paper's page, so we read that for new papers.
+
+  - name: BPEA
+    group: research_body
+    type: api
+    api: crossref
+    url: https://api.crossref.org/journals/1533-4465/works
+    notes: Brookings Papers on Economic Activity, through Crossref (Project MUSE). It publishes twice a year, so 0 new can be normal. Comments and Discussion items have no abstract and are left out.
 
   - name: American Economic Review
     group: journal

@@ -28,6 +28,10 @@ def connect():
     return conn
 
 
+def known_urls(conn):
+    return {row[0] for row in conn.execute("SELECT url FROM papers")}
+
+
 def save_papers(conn, papers):
     new = 0
     for paper in papers:

@@ -3,9 +3,10 @@ import re
 from datetime import date, datetime, timezone
 
 import feedparser
+from bs4 import BeautifulSoup
 
 from src.config import load_sources
-from src.db import connect, save_papers
+from src.db import connect, known_urls, save_papers
 from src.fetch import contact_email, polite_get, safe_text
 from src.models import Paper, clean_text, clean_url, make_id
 
@@ -120,11 +121,40 @@ def read_source(source):
     return READERS[source.get("api") or source["type"]](source)
 
 
+def abstract_on_page(url):
+    soup = BeautifulSoup(polite_get(url).text, "html.parser")
+    heading = soup.find(string=re.compile(r"^\s*Abstract\s*:?\s*$"))
+    if not heading:
+        return ""
+    parts = []
+    for node in heading.parent.find_all_next():
+        if node.name in ("h1", "h2", "h3", "h4", "footer"):
+            break
+        if node.name == "p":
+            parts.append(node.get_text(" ", strip=True))
+    return clean_text(" ".join(parts))
+
+
+def improve_abstracts(source, papers, known):
+    # Some feeds give only the first sentence, so read the paper's own page, for new papers only.
+    if not source.get("abstract_from_page"):
+        return
+    for paper in papers:
+        if paper.url in known:
+            continue
+        try:
+            paper.abstract = abstract_on_page(paper.url) or paper.abstract
+        except Exception as error:
+            print(f"{source['name']}: kept the feed text for {paper.url}, {safe_text(error)}")
+
+
 def collect_all():
     conn = connect()
+    known = known_urls(conn)
     for source in load_sources():
         try:
             papers = read_source(source)
+            improve_abstracts(source, papers, known)
             new = save_papers(conn, papers)
             with_abstract = sum(1 for paper in papers if paper.abstract)
             print(f"{source['name']}: {len(papers)} found, {new} new, {with_abstract} with abstracts")

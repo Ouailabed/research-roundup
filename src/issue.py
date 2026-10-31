@@ -83,7 +83,7 @@ def date_label(published):
 
 
 def no_em_dash(text):
-    return text.replace(" — ", ", ").replace("—", ", ")
+    return text.replace(" \u2014 ", ", ").replace("\u2014", ", ")
 
 
 def write_up(conn, paper_ids, model):

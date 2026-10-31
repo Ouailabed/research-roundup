@@ -53,4 +53,4 @@ def test_date_labels():
 
 
 def test_em_dashes_are_removed():
-    assert no_em_dash("Rates — and more") == "Rates, and more"
+    assert no_em_dash("Rates \u2014 and more") == "Rates, and more"

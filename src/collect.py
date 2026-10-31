@@ -4,6 +4,7 @@ from datetime import date, datetime, timezone
 import feedparser
 
 from src.config import load_sources
+from src.db import connect, save_papers
 from src.fetch import contact_email, polite_get
 from src.models import Paper, clean_text, clean_url, make_id
 
@@ -88,9 +89,17 @@ def read_source(source):
     return READERS[source.get("api") or source["type"]](source)
 
 
-if __name__ == "__main__":
+def collect_all():
+    conn = connect()
     for source in load_sources():
-        papers = read_source(source)
-        print(source["name"], "gave", len(papers), "papers")
-        print(papers[0])
-        print()
+        try:
+            papers = read_source(source)
+            new = save_papers(conn, papers)
+            print(f"{source['name']}: {len(papers)} found, {new} new")
+        except Exception as error:
+            print(f"{source['name']}: failed, {error}")
+    conn.close()
+
+
+if __name__ == "__main__":
+    collect_all()

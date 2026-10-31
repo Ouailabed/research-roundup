@@ -1,0 +1,35 @@
+name: Monthly issue
+
+on:
+  schedule:
+    - cron: "0 7 1 * *"
+  workflow_dispatch:
+    inputs:
+      month:
+        description: "Month to build, for example 2026-10. Leave empty for the last full month."
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-issue:
+    runs-on: ubuntu-latest
+    env:
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      MONTH: ${{ inputs.month }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m src.main build-issue ${MONTH:+--month "$MONTH"}
+      - name: Save the issue
+        run: |
+          git config user.name "research-roundup-agent"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data site
+          git diff --cached --quiet || git commit -m "Monthly issue"
+          git push

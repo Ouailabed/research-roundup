@@ -1,0 +1,30 @@
+name: Publish newsletter
+
+on:
+  push:
+    branches: [main]
+    paths: ["site/**"]
+  # A push made by another workflow doesn't start this one, so the monthly run starts it here.
+  workflow_run:
+    workflows: ["Monthly issue"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4

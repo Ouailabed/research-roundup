@@ -2,8 +2,11 @@ beautifulsoup4==4.15.0
 feedparser==6.0.14
 groq==1.7.0
 Jinja2==3.1.6
+pandas==3.1.0
 premailer==3.10.0
 pydantic==2.14.2
+pytest==9.2.0
 python-dotenv==1.2.4
 PyYAML==6.0.3
 requests==2.34.2
+streamlit==1.66.1

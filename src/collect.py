@@ -1,6 +1,7 @@
+import argparse
 import os
 import re
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import feedparser
 from bs4 import BeautifulSoup
@@ -13,6 +14,9 @@ from src.health import print_table
 from src.models import Paper, clean_text, clean_url, make_id
 
 REPEC_PAPERS_PER_RUN = 30
+BACKFILL_ROWS = 200
+NBER_DOIS = "https://api.crossref.org/prefixes/10.3386/works"
+NBER_LISTING = "https://www.nber.org/api/v1/working_page_listing/contentType/working_paper/_/_/search"
 
 
 def new_paper(source, title, authors, abstract, url, doi, published):
@@ -66,6 +70,43 @@ def read_rss(source, known):
     return [paper_from_entry(source, entry) for entry in feedparser.parse(response.content).entries]
 
 
+def nber_dates(since):
+    # The NBER feed has no dates, but Crossref knows the day each NBER DOI was registered.
+    params = {"filter": f"from-created-date:{since}", "rows": 1000, "select": "DOI,created"}
+    items = polite_get(NBER_DOIS, params=params).json()["message"]["items"]
+    return {item["DOI"].lower(): item["created"]["date-time"][:10] for item in items}
+
+
+def read_nber_listing(source, dates):
+    # The feed can't look back, but the JSON behind NBER's public paper list can.
+    papers = []
+    for page in range(1, 40):
+        params = {"page": page, "perPage": 50, "sortBy": "public_date"}
+        results = polite_get(NBER_LISTING, params=params).json()["results"]
+        in_range = 0
+        for item in results:
+            url = f"https://www.nber.org{item['url']}"
+            doi = doi_from_url(url)
+            if doi in dates:
+                in_range += 1
+                authors = ", ".join(clean_text(name) for name in item["authors"])
+                papers.append(new_paper(source, item["title"], authors, item["abstract"], url, doi, dates[doi]))
+        if not in_range:
+            break
+    return papers
+
+
+def read_nber(source, known):
+    since = source.get("since") or (date.today() - timedelta(days=60)).isoformat()
+    dates = nber_dates(since)
+    if source.get("since"):
+        return read_nber_listing(source, dates)
+    papers = read_rss(source, known)
+    for paper in papers:
+        paper.published = dates.get(paper.id, "")
+    return papers
+
+
 def work_date(work):
     # Many publishers give only a year and month, so fall back to the day Crossref got the record.
     parts = (work.get("published") or {}).get("date-parts", [[]])[0]
@@ -86,6 +127,9 @@ def paper_from_work(source, work):
 
 def read_crossref(source, known):
     params = {"sort": "created", "order": "desc", "rows": 50}
+    if source.get("since"):
+        params["filter"] = f"from-created-date:{source['since']}"
+        params["rows"] = BACKFILL_ROWS
     if contact_email():
         params["mailto"] = contact_email()
     items = polite_get(source["url"], params=params).json()["message"]["items"]
@@ -118,6 +162,9 @@ def read_openalex(source, known):
         "sort": "publication_date:desc",
         "per-page": 50,
     }
+    if source.get("since"):
+        params["filter"] += f",from_publication_date:{source['since']}"
+        params["per-page"] = BACKFILL_ROWS
     if contact_email():
         params["mailto"] = contact_email()
     if os.getenv("OPENALEX_API_KEY"):
@@ -179,6 +226,7 @@ def read_datacite(source, known):
 
 READERS = {
     "rss": read_rss,
+    "nber": read_nber,
     "crossref": read_crossref,
     "openalex": read_openalex,
     "repec": read_repec,
@@ -270,5 +318,49 @@ def collect_all():
     conn.close()
 
 
+def best_first_seen(published, fallback, today):
+    """A month becomes its first day. A year alone becomes 1 January, so it can't enter a month's issue."""
+    if len(published) == 10:
+        best = published
+    elif len(published) == 7:
+        best = f"{published}-01"
+    elif len(published) == 4:
+        best = f"{published}-01-01"
+    else:
+        best = fallback
+    return min(best, today)
+
+
+def set_first_seen_from_sources(conn):
+    today = date.today().isoformat()
+    rows = conn.execute("SELECT id, published, first_seen FROM papers").fetchall()
+    conn.executemany(
+        "UPDATE papers SET first_seen = ? WHERE id = ?",
+        [(best_first_seen(row["published"], row["first_seen"], today), row["id"]) for row in rows],
+    )
+    conn.commit()
+
+
+def backfill(since):
+    conn = connect()
+    known = known_urls(conn)
+    for source in load_sources():
+        if route_of(source) not in ("crossref", "openalex", "nber"):
+            continue
+        papers = read_source(dict(source, since=since), known)
+        print(f"{source['name']}: {len(papers)} found, {save_papers(conn, papers)} new")
+    for doi, day in nber_dates(since).items():
+        conn.execute("UPDATE papers SET published = ? WHERE id = ?", (day, doi))
+    set_first_seen_from_sources(conn)
+    print(f"{len(mark_duplicates(conn))} papers are duplicates of another source's paper")
+    conn.close()
+
+
 if __name__ == "__main__":
-    collect_all()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--since", help="load older papers from this date, for example 2026-09-01")
+    arguments = parser.parse_args()
+    if arguments.since:
+        backfill(arguments.since)
+    else:
+        collect_all()

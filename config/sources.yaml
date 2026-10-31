@@ -6,8 +6,9 @@ sources:
   - name: NBER
     group: research_body
     type: rss
+    reader: nber
     url: https://www.nber.org/rss/new.xml
-    notes: Full abstracts in the feed, but no dates.
+    notes: Full abstracts in the feed, but no dates, so the dates come from Crossref (prefix 10.3386). The backfill uses the JSON behind NBER's public paper list, because the feed can't look back.
 
   - name: IMF
     group: research_body

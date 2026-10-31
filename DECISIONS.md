@@ -13,4 +13,6 @@ One line for every choice: what we chose and why.
 - BIS abstracts come from each paper's page, because the feed often gives only the first sentence.
 - The Reserve Bank of New Zealand is not covered. Its site answers 403 to scripts, RePEc stops in 2024, and we never disguise the script as a browser.
 - Papers with no abstract stay in the database but are not analysed, as Yasmine's note on paywalls allows.
+- A paper belongs to the month we first saw it, because published dates are unreliable. The backfill is the one exception: it uses the best date the source gives. A month becomes its first day. A year alone becomes 1 January, so those papers can't enter a backfilled issue, and we never guess a month.
+- NBER dates come from Crossref (prefix 10.3386), because the feed has none. The backfill reads the JSON behind NBER's public paper list, which robots.txt allows, because Crossref has no NBER abstracts.
 - Two papers from different sources count as the same if their titles are more than 0.9 alike. The one with the longest abstract is kept. Same-source papers are never merged, because BPEA reuses titles like Comments and Discussion.

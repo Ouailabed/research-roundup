@@ -1,0 +1,14 @@
+# Secrets and local settings
+.env
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Private project notes, not part of the submission
+RESEARCH_ROUNDUP_PROMPT.md
+CLAUDE.md
+EXAM.md
+.claude/

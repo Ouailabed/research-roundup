@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Sample papers feed</title>
+    <link>https://www.nber.org/papers</link>
+    <description>A made-up feed in the same shape as the NBER feed, for tests.</description>
+    <item>
+      <title>A Made-Up Paper About Rates -- by Ana Silva, Ben Okoye</title>
+      <link>https://www.nber.org/papers/w99991#fromrss</link>
+      <description>We study a made-up question.  This abstract has  odd spacing and a &lt;b&gt;tag&lt;/b&gt;.</description>
+    </item>
+    <item>
+      <title>Second Made-Up Paper</title>
+      <link>https://www.example.org/paper?utm_source=rss&amp;id=7</link>
+      <description>Another made-up abstract.</description>
+      <pubDate>Mon, 12 Oct 2026 09:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

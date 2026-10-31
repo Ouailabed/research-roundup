@@ -54,6 +54,263 @@ sources:
     url: https://ideas.repec.org/s/ecb/ecbwps.html
     notes: Working Papers through RePEc IDEAS. The bank's own feed has abstracts but no authors, and the newsletter needs authors.
 
+  - name: Bank of Canada
+    group: g10_central_bank
+    type: api
+    reader: datacite
+    url: https://api.datacite.org/dois
+    prefix: "10.34989"
+    doi_contains: [swp-, sdp-]
+    notes: Staff Working and Discussion Papers through DataCite, with abstracts. These DOIs are not in Crossref.
+
+  - name: Bank of Japan
+    group: g10_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/boj/bojwps.html
+    notes: Working Papers through RePEc IDEAS. The bank's own feed lists every kind of notice and has no abstracts.
+
+  - name: Banque de France
+    group: g10_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/bfr/banfra.html
+    notes: Working Papers through RePEc IDEAS. Dates show only the year.
+
+  - name: Deutsche Bundesbank
+    group: g10_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/zbw/bubdps.html
+    notes: Discussion Papers through RePEc IDEAS. Dates show only the year.
+
+  - name: Banca d'Italia
+    group: g10_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/bdi/wptemi.html
+    notes: Temi di discussione through RePEc IDEAS. Dates show the month.
+
+  - name: De Nederlandsche Bank
+    group: g10_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/dnb/dnbwpp.html
+    notes: Working Papers through RePEc IDEAS. Dates show the month.
+
+  - name: National Bank of Belgium
+    group: g10_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/nbb/reswpp.html
+    notes: Working Papers through RePEc IDEAS. Dates show the month.
+
+  - name: Sveriges Riksbank
+    group: g10_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/hhs/rbnkwp.html
+    notes: Working Papers through RePEc IDEAS.
+
+  - name: Swiss National Bank
+    group: g10_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/snb/snbwpa.html
+    notes: Working Papers through RePEc IDEAS. Dates show only the year.
+
+  - name: Reserve Bank of Australia
+    group: g10_central_bank
+    type: api
+    reader: crossref
+    url: https://api.crossref.org/prefixes/10.47688/works
+    doi_contains: [/rdp]
+    notes: Research Discussion Papers through Crossref. The bank's own feed holds only the latest paper.
+
+  - name: Reserve Bank of New Zealand
+    group: g10_central_bank
+    type: html
+    status: not_covered
+    url: https://www.rbnz.govt.nz/research-and-publications/analytical-notes
+    notes: Not covered. The site answered 403 to a script on 31 October 2026, and we never disguise the script as a browser. RePEc IDEAS stops at 2023 for Discussion Papers and 2024 for Analytical Notes.
+
+  - name: Boston Fed
+    group: regional_fed
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/fip/fedbwp.html
+    notes: Crossref has the DOIs (prefix 10.29412) but no abstracts, so we use RePEc IDEAS.
+
+  - name: New York Fed
+    group: regional_fed
+    type: api
+    reader: crossref
+    url: https://api.crossref.org/prefixes/10.59576/works
+    doi_contains: [/sr.]
+    notes: Staff Reports through Crossref, with abstracts.
+
+  - name: Philadelphia Fed
+    group: regional_fed
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/fip/fedpwp.html
+    notes: Crossref has the DOIs (prefix 10.21799) but no abstracts, so we use RePEc IDEAS.
+
+  - name: Cleveland Fed
+    group: regional_fed
+    type: api
+    reader: crossref
+    url: https://api.crossref.org/prefixes/10.26509/works
+    doi_contains: [frbc-wp]
+    notes: Working Papers through Crossref, with abstracts.
+
+  - name: Richmond Fed
+    group: regional_fed
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/fip/fedrwp.html
+    notes: Crossref has the DOIs (prefix 10.21144) but no abstracts, so we use RePEc IDEAS.
+
+  - name: Atlanta Fed
+    group: regional_fed
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/fip/fedawp.html
+    notes: Crossref has the DOIs (prefix 10.29338) but no titles or abstracts, so we use RePEc IDEAS.
+
+  - name: Chicago Fed
+    group: regional_fed
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/fip/fedhwp.html
+    notes: Crossref had abstracts for only 7 of 9 recent papers, so we use RePEc IDEAS.
+
+  - name: St. Louis Fed
+    group: regional_fed
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/fip/fedlwp.html
+    notes: Crossref has the DOIs (prefix 10.20955) but no abstracts, so we use RePEc IDEAS.
+
+  - name: Minneapolis Fed Staff Reports
+    group: regional_fed
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/fip/fedmsr.html
+    notes: Crossref has no abstracts, and robots.txt on the bank's research database does not allow scripts, so we use RePEc IDEAS.
+
+  - name: Minneapolis Fed Working Papers
+    group: regional_fed
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/fip/fedmwp.html
+    notes: Crossref has no abstracts, and robots.txt on the bank's research database does not allow scripts, so we use RePEc IDEAS.
+
+  - name: Kansas City Fed
+    group: regional_fed
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/fip/fedkrw.html
+    notes: Crossref has the DOIs (prefix 10.18651) but no abstracts, so we use RePEc IDEAS. Some abstracts are short.
+
+  - name: Dallas Fed
+    group: regional_fed
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/fip/feddwp.html
+    notes: Crossref has the DOIs (prefix 10.24149) but no abstracts, so we use RePEc IDEAS.
+
+  - name: San Francisco Fed
+    group: regional_fed
+    type: api
+    reader: crossref
+    url: https://api.crossref.org/prefixes/10.24148/works
+    doi_contains: [/wp]
+    notes: Working Papers through Crossref, with abstracts.
+
+  - name: Banco de Espana
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/bde/wpaper.html
+    notes: Working Papers through RePEc IDEAS. Crossref (prefix 10.53479) had abstracts for only about half.
+
+  - name: Banco de Portugal
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/ptu/wpaper.html
+    notes: Working Papers through RePEc IDEAS. Dates show only the year.
+
+  - name: Bank of Finland
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/zbw/bofrdp.html
+    notes: Research Discussion Papers through RePEc IDEAS. Dates show only the year.
+
+  - name: Central Bank of Ireland
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/cbi/wpaper.html
+    notes: Research Technical Papers through RePEc IDEAS. Dates show the month.
+
+  - name: Oesterreichische Nationalbank
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/onb/oenbwp.html
+    notes: Working Papers through RePEc IDEAS.
+
+  - name: Norges Bank
+    group: european_central_bank
+    type: rss
+    url: https://www.norges-bank.no/en/rss-feeds/Working-papers---Norges-Bank/
+    abstract_from_page: true
+    authors_from_page: true
+    notes: The bank's own Working Papers feed gives titles, links and dates. Abstracts and authors come from each paper's page. RePEc IDEAS stops at 2023.
+
+  - name: Danmarks Nationalbank
+    group: european_central_bank
+    type: rss
+    status: fallback
+    url: https://www.econstor.eu/feed/rss_2.0/10419/82298
+    authors_from_page: true
+    year_only: true
+    notes: Working Papers through EconStor, an open repository. The feed shows only recent items and dates each one 1 January, so only the year is real.
+
+  - name: Narodowy Bank Polski
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/nbp/nbpmis.html
+    notes: Working Papers through RePEc IDEAS. Dates show only the year.
+
   - name: American Economic Review
     group: journal
     type: api

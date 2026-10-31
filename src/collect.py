@@ -52,7 +52,11 @@ def paper_from_entry(source, entry):
     if not authors:
         authors = ", ".join(person.get("name", "") for person in entry.get("authors", []))
     url = entry.link
-    return new_paper(source, title, authors, entry.get("summary", ""), url, doi_from_url(url), entry_date(entry))
+    published = entry_date(entry)
+    # EconStor dates every paper 1 January, so only the year is real.
+    if source.get("year_only"):
+        published = published[:4]
+    return new_paper(source, title, authors, entry.get("summary", ""), url, doi_from_url(url), published)
 
 
 def read_rss(source, known):
@@ -153,15 +157,36 @@ def read_repec(source, known):
     return papers
 
 
-READERS = {"rss": read_rss, "crossref": read_crossref, "openalex": read_openalex, "repec": read_repec}
+def paper_from_datacite(source, item):
+    record = item["attributes"]
+    abstracts = [text["description"] for text in record.get("descriptions", []) if text.get("descriptionType") == "Abstract"]
+    authors = ", ".join(flip_name(person.get("name", "")) for person in record.get("creators", []))
+    title = (record.get("titles") or [{}])[0].get("title", "")
+    url = record.get("url") or f"https://doi.org/{record['doi']}"
+    return new_paper(source, title, authors, abstracts[0] if abstracts else "", url, record["doi"], (record.get("created") or "")[:10])
+
+
+def read_datacite(source, known):
+    params = {"prefix": source["prefix"], "page[size]": 50, "sort": "-created"}
+    items = polite_get(source["url"], params=params).json()["data"]
+    wanted = source.get("doi_contains", [""])
+    return [paper_from_datacite(source, item) for item in items if any(part in item["attributes"]["doi"].lower() for part in wanted)]
+
+
+READERS = {
+    "rss": read_rss,
+    "crossref": read_crossref,
+    "openalex": read_openalex,
+    "repec": read_repec,
+    "datacite": read_datacite,
+}
 
 
 def read_source(source, known):
     return READERS[source.get("reader") or source["type"]](source, known)
 
 
-def abstract_on_page(url):
-    soup = BeautifulSoup(polite_get(url).text, "html.parser")
+def abstract_on_page(soup):
     heading = soup.find(string=re.compile(r"^\s*Abstract\s*:?\s*$"))
     if not heading:
         return ""
@@ -174,15 +199,27 @@ def abstract_on_page(url):
     return clean_text(" ".join(parts))
 
 
-def improve_abstracts(source, papers, known):
-    # Some feeds give only the first sentence, so read the paper's own page, for new papers only.
-    if not source.get("abstract_from_page"):
+def authors_on_page(soup):
+    tags = soup.find_all("meta", attrs={"name": re.compile("^(citation_author|DC.creator)$", re.I)})
+    if tags:
+        return ", ".join(flip_name(tag.get("content", "")) for tag in tags)
+    match = re.search(r"Authors?: (.+?) Series:", " ".join(soup.get_text(" ").split()))
+    return match.group(1) if match else ""
+
+
+def fill_from_pages(source, papers, known):
+    # Some feeds leave out the authors or give only the first sentence, so read each new paper's page.
+    if not (source.get("abstract_from_page") or source.get("authors_from_page")):
         return
     for paper in papers:
         if paper.url in known:
             continue
         try:
-            paper.abstract = abstract_on_page(paper.url) or paper.abstract
+            soup = BeautifulSoup(polite_get(paper.url).text, "html.parser")
+            if source.get("abstract_from_page"):
+                paper.abstract = abstract_on_page(soup) or paper.abstract
+            if source.get("authors_from_page"):
+                paper.authors = authors_on_page(soup) or paper.authors
         except Exception as error:
             print(f"{source['name']}: kept the feed text for {paper.url}, {safe_text(error)}")
 
@@ -195,7 +232,7 @@ def collect_all():
             continue
         try:
             papers = read_source(source, known)
-            improve_abstracts(source, papers, known)
+            fill_from_pages(source, papers, known)
             new = save_papers(conn, papers)
             with_abstract = sum(1 for paper in papers if paper.abstract)
             print(f"{source['name']}: {len(papers)} found, {new} new, {with_abstract} with abstracts")

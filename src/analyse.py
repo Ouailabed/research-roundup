@@ -2,13 +2,12 @@ import json
 import time
 from typing import Literal
 
-from groq import RateLimitError
+from groq import BadRequestError, RateLimitError
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from src.ai import groq_client, have_key, load_settings
 from src.db import connect, papers_to_analyse, save_analysis
 
-LONGEST_WAIT = 120
 LONGEST_ABSTRACT = 2500
 
 RULES = """You help a markets research team at an investment bank find useful economics papers.
@@ -45,6 +44,9 @@ class Analysis(Score):
     why_it_matters: str = Field(description="Why this matters for a markets research team.")
 
 
+LONGEST_ANSWER = {Score: 800, Analysis: 2000}
+
+
 class DailyLimitReached(Exception):
     pass
 
@@ -66,7 +68,14 @@ def paper_text(paper):
 
 
 def seconds_to_wait(error):
-    return float(error.response.headers.get("retry-after", LONGEST_WAIT))
+    return float(error.response.headers.get("retry-after", 60))
+
+
+def model_options(model, shape):
+    # These models think before they answer, and that counts towards the limit. Scoring doesn't need much of it.
+    if shape is Score and model.startswith("openai/gpt-oss"):
+        return {"reasoning_effort": "low"}
+    return {}
 
 
 def call_model(client, model, paper, shape):
@@ -76,22 +85,26 @@ def call_model(client, model, paper, shape):
                 model=model,
                 messages=[{"role": "system", "content": RULES}, {"role": "user", "content": paper_text(paper)}],
                 response_format=response_format(shape),
+                max_completion_tokens=LONGEST_ANSWER[shape],
+                **model_options(model, shape),
             )
             return reply.choices[0].message.content
         except RateLimitError as error:
-            wait = seconds_to_wait(error)
-            # A short wait is the per-minute limit. A long one means today's allowance has run out.
-            if wait > LONGEST_WAIT:
-                raise DailyLimitReached(f"Groq asked us to wait {wait:.0f} seconds") from error
-            time.sleep(wait)
+            if "per day" in str(error):
+                raise DailyLimitReached(f"{model} has used up today's allowance") from error
+            time.sleep(seconds_to_wait(error))
 
 
 def analyse_paper(client, model, paper, shape):
     """Returns a checked result, or None if the answer is still invalid after one retry."""
     for attempt in (1, 2):
-        text = call_model(client, model, paper, shape)
         try:
-            return shape.model_validate(json.loads(text))
+            return shape.model_validate(json.loads(call_model(client, model, paper, shape)))
+        except BadRequestError as error:
+            # Groq refuses an answer that breaks the JSON shape. Any other 400 is a real fault.
+            if "json_validate_failed" not in str(error):
+                raise
+            print(f"Groq refused the answer for {paper['id']}, attempt {attempt}")
         except (json.JSONDecodeError, ValidationError) as error:
             print(f"Invalid answer for {paper['id']}, attempt {attempt}: {str(error)[:120]}")
     return None
@@ -102,23 +115,29 @@ def analyse_all(limit=None):
         print("No GROQ_API_KEY found, so no new analysis. Saved results still work.")
         return
     settings = load_settings()
-    model = settings["models"]["cheap"]
+    models = list(settings["models"]["cheap"])
     conn = connect()
     client = groq_client()
-    papers = papers_to_analyse(conn, model, settings["analyse_from"])[:limit]
-    print(f"{len(papers)} papers to analyse with {model}")
+    papers = papers_to_analyse(conn, settings["analyse_from"])[:limit]
+    print(f"{len(papers)} papers to analyse")
     done = 0
     for paper in papers:
-        try:
-            result = analyse_paper(client, model, paper, Score)
-        except DailyLimitReached as error:
-            print(f"Stopped for today: {error}. Run this again later and it carries on.")
+        result = None
+        while models:
+            try:
+                result = analyse_paper(client, models[0], paper, Score)
+                break
+            except DailyLimitReached as error:
+                print(f"{error}, so the next model takes over.")
+                models.pop(0)
+        if not models:
+            print("Every scoring model has used up today's allowance. Run this again later and it carries on.")
             break
         if result:
-            save_analysis(conn, paper["id"], model, result)
+            save_analysis(conn, paper["id"], models[0], result)
             done += 1
             if done % 25 == 0:
-                print(f"{done} done")
+                print(f"{done} done", flush=True)
     print(f"Analysed {done} papers")
     conn.close()
 

@@ -25,7 +25,7 @@ def groq_client():
 
 if __name__ == "__main__":
     reply = groq_client().chat.completions.create(
-        model=load_settings()["models"]["cheap"],
+        model=load_settings()["models"]["strong"],
         messages=[{"role": "user", "content": "Reply with one word: ready"}],
     )
     print(reply.choices[0].message.content)

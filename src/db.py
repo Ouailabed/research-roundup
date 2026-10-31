@@ -113,14 +113,14 @@ def latest_health(conn):
     return conn.execute("SELECT * FROM health WHERE run_at = (SELECT MAX(run_at) FROM health)").fetchall()
 
 
-def papers_to_analyse(conn, model, since):
-    """Papers with an abstract and no result from this model, newest first."""
+def papers_to_analyse(conn, since):
+    """Papers with an abstract and no score yet, newest first."""
     return conn.execute(
         """SELECT id, title, authors, abstract, source FROM papers
         WHERE abstract <> '' AND duplicate_of IS NULL AND first_seen >= ?
-        AND id NOT IN (SELECT paper_id FROM analyses WHERE model = ?)
+        AND id NOT IN (SELECT paper_id FROM analyses)
         ORDER BY first_seen DESC, id""",
-        (since, model),
+        (since,),
     ).fetchall()
 
 
@@ -146,12 +146,13 @@ def save_analysis(conn, paper_id, model, result):
     conn.commit()
 
 
-def issue_candidates(conn, month, model):
+def issue_candidates(conn, month):
+    """A score has no takeaways. Only the full write-up has those."""
     return conn.execute(
         """SELECT p.id, p.source, a.market_focus, a.relevance
         FROM papers p JOIN analyses a ON a.paper_id = p.id
-        WHERE a.model = ? AND p.duplicate_of IS NULL AND substr(p.first_seen, 1, 7) = ?""",
-        (model, month),
+        WHERE a.takeaways = '[]' AND p.duplicate_of IS NULL AND substr(p.first_seen, 1, 7) = ?""",
+        (month,),
     ).fetchall()
 
 

@@ -11,6 +11,7 @@ sources:
   - name: IMF
     group: research_body
     type: api
+    api: crossref
     url: https://api.crossref.org/journals/1018-5941/works
     notes: IMF Working Papers through Crossref. The IMF's own feed answered 403 to a script on 31 October 2026.
 

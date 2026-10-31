@@ -44,13 +44,24 @@ CREATE TABLE IF NOT EXISTS analyses (
     model TEXT,
     analysed_at TEXT,
     summary TEXT,
-    takeaways TEXT,
-    why_it_matters TEXT,
     market_focus TEXT,
     tag_reason TEXT,
     relevance INTEGER,
     topics TEXT,
     PRIMARY KEY (paper_id, model)
+)
+"""
+
+WRITEUPS_SCHEMA = """
+CREATE TABLE IF NOT EXISTS writeups (
+    paper_id TEXT PRIMARY KEY,
+    model TEXT,
+    analysed_at TEXT,
+    summary TEXT,
+    takeaways TEXT,
+    why_it_matters TEXT,
+    market_focus TEXT,
+    tag_reason TEXT
 )
 """
 
@@ -70,6 +81,7 @@ def connect():
     conn.execute(SCHEMA)
     conn.execute(HEALTH_SCHEMA)
     conn.execute(ANALYSES_SCHEMA)
+    conn.execute(WRITEUPS_SCHEMA)
     conn.execute(ISSUES_SCHEMA)
     # A database made before this column existed needs it added.
     columns = {row["name"] for row in conn.execute("PRAGMA table_info(papers)")}
@@ -124,34 +136,53 @@ def papers_to_analyse(conn, since):
     ).fetchall()
 
 
+def right_now():
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
 def save_analysis(conn, paper_id, model, result):
-    data = result.model_dump()
     conn.execute(
         """INSERT OR REPLACE INTO analyses
-        (paper_id, model, analysed_at, summary, takeaways, why_it_matters, market_focus, tag_reason, relevance, topics)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (paper_id, model, analysed_at, summary, market_focus, tag_reason, relevance, topics)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             paper_id,
             model,
-            datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            data["summary"],
-            json.dumps(data.get("takeaways", [])),
-            data.get("why_it_matters", ""),
-            data["market_focus"],
-            data["tag_reason"],
-            data["relevance"],
-            json.dumps(data["topics"]),
+            right_now(),
+            result.summary,
+            result.market_focus,
+            result.tag_reason,
+            result.relevance,
+            json.dumps(result.topics),
+        ),
+    )
+    conn.commit()
+
+
+def save_writeup(conn, paper_id, model, result):
+    conn.execute(
+        """INSERT OR REPLACE INTO writeups
+        (paper_id, model, analysed_at, summary, takeaways, why_it_matters, market_focus, tag_reason)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        (
+            paper_id,
+            model,
+            right_now(),
+            result.summary,
+            json.dumps(result.takeaways),
+            result.why_it_matters,
+            result.market_focus,
+            result.tag_reason,
         ),
     )
     conn.commit()
 
 
 def issue_candidates(conn, month):
-    """A score has no takeaways. Only the full write-up has those."""
     return conn.execute(
         """SELECT p.id, p.source, a.market_focus, a.relevance
         FROM papers p JOIN analyses a ON a.paper_id = p.id
-        WHERE a.takeaways = '[]' AND p.duplicate_of IS NULL AND substr(p.first_seen, 1, 7) = ?""",
+        WHERE p.duplicate_of IS NULL AND substr(p.first_seen, 1, 7) = ?""",
         (month,),
     ).fetchall()
 
@@ -173,19 +204,18 @@ def paper_by_id(conn, paper_id):
     return conn.execute("SELECT id, title, authors, abstract, source FROM papers WHERE id = ?", (paper_id,)).fetchone()
 
 
-def has_analysis(conn, paper_id, model):
-    row = conn.execute("SELECT 1 FROM analyses WHERE paper_id = ? AND model = ?", (paper_id, model)).fetchone()
-    return row is not None
+def has_writeup(conn, paper_id):
+    return conn.execute("SELECT 1 FROM writeups WHERE paper_id = ?", (paper_id,)).fetchone() is not None
 
 
-def issue_papers(conn, month, model):
+def issue_papers(conn, month):
     return conn.execute(
         """SELECT p.title, p.authors, p.source, p.published, p.url,
-        a.summary, a.takeaways, a.why_it_matters, a.market_focus, a.tag_reason
+        w.summary, w.takeaways, w.why_it_matters, w.market_focus, w.tag_reason
         FROM issues i JOIN papers p ON p.id = i.paper_id
-        JOIN analyses a ON a.paper_id = p.id AND a.model = ?
+        JOIN writeups w ON w.paper_id = p.id
         WHERE i.month = ? ORDER BY i.position""",
-        (model, month),
+        (month,),
     ).fetchall()
 
 

@@ -5,7 +5,9 @@ One line for every choice: what we chose and why.
 - AI provider: Groq, because it has a free tier and this project is a trial.
 - Models: `openai/gpt-oss-20b` scores every paper and `openai/gpt-oss-120b` writes up the chosen papers, because the free limits are tight.
 - Groq's free tier on 31 October 2026 gave each model 1,000 requests a day, 8,000 tokens a minute and 200,000 tokens a day.
-- Scoring uses `qwen/qwen3.8-27b` first, because it took about 650 tokens a paper. `openai/gpt-oss-20b` took about 1,700 by default, because its hidden reasoning counts, and about 850 with low effort, so it comes second. Limits are per model, so when one runs out the next takes over, and that gives about 500 papers a day.
+- Scoring uses `openai/gpt-oss-20b` at low effort, about 850 tokens a paper. At default effort it took about 1,700, because its hidden reasoning counts. Limits are per model, so when it runs out `openai/gpt-oss-120b` takes over.
+- `qwen/qwen3.8-27b` was tried for scoring and dropped. Groq refused about 3 in 10 of its answers, and it scored on a different scale, so mixing it in would have favoured some papers unfairly.
+- Scores and full write-ups live in separate tables, because the strong model can do both for the same paper.
 - Each issue takes 5 to 8 papers: the best paper of each tag first, so there is a mix where possible, then the highest scores, at most 2 per source. Ties go by id, so the same month always gives the same issue. Once chosen, an issue's list is saved and reused.
 - Python 3.14 on the laptop, in GitHub Actions and on Streamlit Community Cloud, so all three behave the same.
 - Feeds and official APIs come first, because they are stable and allowed. Scraping is a last resort.

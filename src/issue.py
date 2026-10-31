@@ -11,13 +11,13 @@ from src.analyse import Analysis, DailyLimitReached, analyse_paper
 from src.config import ROOT
 from src.db import (
     connect,
-    has_analysis,
+    has_writeup,
     issue_candidates,
     issue_papers,
     month_counts,
     paper_by_id,
-    save_analysis,
     save_issue,
+    save_writeup,
     saved_issue,
 )
 
@@ -88,7 +88,7 @@ def no_em_dash(text):
 
 def write_up(conn, paper_ids, model):
     """The stronger model writes the full analysis, only for the chosen papers."""
-    missing = [paper_id for paper_id in paper_ids if not has_analysis(conn, paper_id, model)]
+    missing = [paper_id for paper_id in paper_ids if not has_writeup(conn, paper_id)]
     if not missing:
         return True
     if not have_key():
@@ -104,7 +104,7 @@ def write_up(conn, paper_ids, model):
         if not result:
             print(f"No valid analysis for {paper_id}, so the issue was not built.")
             return False
-        save_analysis(conn, paper_id, model, result)
+        save_writeup(conn, paper_id, model, result)
     return True
 
 
@@ -162,7 +162,7 @@ def build_issue(month=None):
     if not write_up(conn, chosen, models["strong"]):
         conn.close()
         return None
-    papers = issue_context(issue_papers(conn, month, models["strong"]))
+    papers = issue_context(issue_papers(conn, month))
     paper_count, source_count = month_counts(conn, month)
     conn.close()
     ISSUE_FOLDER.mkdir(parents=True, exist_ok=True)

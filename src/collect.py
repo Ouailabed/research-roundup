@@ -10,6 +10,8 @@ from src.db import connect, known_urls, save_papers
 from src.fetch import contact_email, polite_get, safe_text
 from src.models import Paper, clean_text, clean_url, make_id
 
+REPEC_PAPERS_PER_RUN = 30
+
 
 def new_paper(source, title, authors, abstract, url, doi, published):
     now = datetime.now(timezone.utc)
@@ -53,7 +55,7 @@ def paper_from_entry(source, entry):
     return new_paper(source, title, authors, entry.get("summary", ""), url, doi_from_url(url), entry_date(entry))
 
 
-def read_rss(source):
+def read_rss(source, known):
     response = polite_get(source["url"])
     return [paper_from_entry(source, entry) for entry in feedparser.parse(response.content).entries]
 
@@ -76,11 +78,15 @@ def paper_from_work(source, work):
     return new_paper(source, title, work_authors(work), work.get("abstract", ""), work["URL"], work["DOI"], work_date(work))
 
 
-def read_crossref(source):
+def read_crossref(source, known):
     params = {"sort": "created", "order": "desc", "rows": 50}
     if contact_email():
         params["mailto"] = contact_email()
     items = polite_get(source["url"], params=params).json()["message"]["items"]
+    # A DOI prefix covers everything a bank publishes, so keep only its working papers.
+    wanted = source.get("doi_contains")
+    if wanted:
+        items = [work for work in items if any(part in work["DOI"].lower() for part in wanted)]
     return [paper_from_work(source, work) for work in items]
 
 
@@ -100,7 +106,7 @@ def paper_from_openalex(source, work):
     return new_paper(source, work.get("title") or "", authors, abstract, doi_url or work["id"], doi, work.get("publication_date") or "")
 
 
-def read_openalex(source):
+def read_openalex(source, known):
     params = {
         "filter": f"primary_location.source.issn:{source['issn']}",
         "sort": "publication_date:desc",
@@ -114,11 +120,44 @@ def read_openalex(source):
     return [paper_from_openalex(source, work) for work in results]
 
 
-READERS = {"rss": read_rss, "crossref": read_crossref, "openalex": read_openalex}
+def meta_content(soup, name):
+    tag = soup.find("meta", attrs={"name": name})
+    return (tag.get("content") or "").strip() if tag else ""
 
 
-def read_source(source):
-    return READERS[source.get("api") or source["type"]](source)
+def flip_name(name):
+    # Some series write names as "Last, First".
+    last, comma, first = name.partition(",")
+    return f"{first.strip()} {last.strip()}" if comma else name.strip()
+
+
+def paper_from_repec(source, url):
+    soup = BeautifulSoup(polite_get(url).text, "html.parser")
+    names = [flip_name(name) for name in meta_content(soup, "citation_authors").split(";")]
+    published = meta_content(soup, "citation_publication_date").replace("/", "-")
+    return new_paper(source, meta_content(soup, "citation_title"), ", ".join(filter(None, names)), meta_content(soup, "citation_abstract"), url, "", published)
+
+
+def read_repec(source, known):
+    soup = BeautifulSoup(polite_get(source["url"]).text, "html.parser")
+    links = [link["href"] for link in soup.select("b > a[href]") if link["href"].startswith("/p/")]
+    papers = []
+    for href in links[:REPEC_PAPERS_PER_RUN]:
+        url = f"https://ideas.repec.org{href}"
+        if url in known:
+            continue
+        try:
+            papers.append(paper_from_repec(source, url))
+        except Exception as error:
+            print(f"{source['name']}: skipped {url}, {safe_text(error)}")
+    return papers
+
+
+READERS = {"rss": read_rss, "crossref": read_crossref, "openalex": read_openalex, "repec": read_repec}
+
+
+def read_source(source, known):
+    return READERS[source.get("reader") or source["type"]](source, known)
 
 
 def abstract_on_page(url):
@@ -152,8 +191,10 @@ def collect_all():
     conn = connect()
     known = known_urls(conn)
     for source in load_sources():
+        if source.get("status") == "not_covered":
+            continue
         try:
-            papers = read_source(source)
+            papers = read_source(source, known)
             improve_abstracts(source, papers, known)
             new = save_papers(conn, papers)
             with_abstract = sum(1 for paper in papers if paper.abstract)

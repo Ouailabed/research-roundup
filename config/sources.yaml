@@ -1,5 +1,6 @@
 # Every source the agent reads. To add a source, add an entry here.
-# type is rss, api or html.
+# type is rss, api or html. reader says which function reads it, if that isn't the same as type.
+# status is working (default), fallback or not_covered. A not_covered source is skipped, with the reason in its notes.
 
 sources:
   - name: NBER
@@ -11,7 +12,7 @@ sources:
   - name: IMF
     group: research_body
     type: api
-    api: crossref
+    reader: crossref
     url: https://api.crossref.org/journals/1018-5941/works
     notes: IMF Working Papers through Crossref. The IMF's own feed answered 403 to a script on 31 October 2026.
 
@@ -25,14 +26,38 @@ sources:
   - name: BPEA
     group: research_body
     type: api
-    api: crossref
+    reader: crossref
     url: https://api.crossref.org/journals/1533-4465/works
     notes: Brookings Papers on Economic Activity, through Crossref (Project MUSE). It publishes twice a year, so 0 new can be normal. Comments and Discussion items have no abstract and are left out.
+
+  - name: Federal Reserve Board
+    group: g10_central_bank
+    type: api
+    reader: crossref
+    url: https://api.crossref.org/prefixes/10.17016/works
+    doi_contains: [feds., ifdp.]
+    notes: FEDS and IFDP papers through Crossref, with authors and abstracts. The bank's own feeds put authors and abstract in one block of text, which is harder to read.
+
+  - name: Bank of England
+    group: g10_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/boe/boeewp.html
+    notes: Staff Working Papers through RePEc IDEAS. The bank's own feed mixes all publications and has short descriptions.
+
+  - name: European Central Bank
+    group: g10_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/ecb/ecbwps.html
+    notes: Working Papers through RePEc IDEAS. The bank's own feed has abstracts but no authors, and the newsletter needs authors.
 
   - name: American Economic Review
     group: journal
     type: api
-    api: openalex
+    reader: openalex
     issn: 0002-8282
     url: https://api.openalex.org/works
     notes: OpenAlex had abstracts for 25 of 25 recent articles on 31 October 2026.
@@ -40,14 +65,14 @@ sources:
   - name: Econometrica
     group: journal
     type: api
-    api: crossref
+    reader: crossref
     url: https://api.crossref.org/journals/0012-9682/works
     notes: Crossref had abstracts for 20 of 25 recent articles. Its published date shows only the year, so we use its created date.
 
   - name: Journal of Political Economy
     group: journal
     type: api
-    api: openalex
+    reader: openalex
     issn: 0022-3808
     url: https://api.openalex.org/works
     notes: Only 4 of 25 recent articles had abstracts in OpenAlex, and 0 of 25 in Crossref. Papers with no abstract are left out for that cycle.
@@ -55,7 +80,7 @@ sources:
   - name: Quarterly Journal of Economics
     group: journal
     type: api
-    api: openalex
+    reader: openalex
     issn: 0033-5533
     url: https://api.openalex.org/works
     notes: OpenAlex had abstracts for 25 of 25 recent articles on 31 October 2026.
@@ -63,7 +88,7 @@ sources:
   - name: Review of Economic Studies
     group: journal
     type: api
-    api: openalex
+    reader: openalex
     issn: 0034-6527
     url: https://api.openalex.org/works
     notes: OpenAlex had abstracts for 25 of 25 recent articles on 31 October 2026.

@@ -107,7 +107,7 @@ Tags follow one rule set, based on the IMF's list of advanced economies:
 - **EM:** mainly about emerging or developing economies.
 - **Transversal:** global, many regions, or theory and methods not tied to one group.
 
-Two models keep the work inside Groq's free limits. `openai/gpt-oss-20b` scores every paper. `openai/gpt-oss-120b` writes the full analysis, only for the papers chosen for an issue. Every result is saved with its model name and date, so the same model never reads the same paper twice, and a run that stops at the daily limit carries on from where it stopped.
+Two models keep the work inside Groq's free limits. `openai/gpt-oss-20b` scores every paper at low effort, and `openai/gpt-oss-120b` takes over if it runs out for the day. `openai/gpt-oss-120b` also writes the full analysis, only for the papers chosen for an issue. Every result is saved with its model name and date, so the same model never reads the same paper twice, and a run that stops at the daily limit carries on from where it stopped.
 
 Tag accuracy has not been measured yet. `python -m src.compare sheet` makes a sheet of 20 papers to tag by hand, and `python -m src.compare score` compares those tags with the AI's.
 
@@ -160,7 +160,7 @@ python -m pytest
 
 ## Monthly cost
 
-Nothing. Groq's free tier gave 1,000 requests a day and 8,000 tokens a minute per model on 31 October 2026. GitHub Actions and Streamlit Community Cloud are free for this size of project. A normal month has about 300 new papers, and one paper uses about 800 tokens.
+Nothing. Groq's free tier gave each model 1,000 requests a day, 8,000 tokens a minute and 200,000 tokens a day on 31 October 2026. GitHub Actions and Streamlit Community Cloud are free for this size of project. A normal month has about 300 new papers, and scoring one paper uses about 850 tokens, so a month's work fits well inside one day's allowance.
 
 ## Limits and next steps
 

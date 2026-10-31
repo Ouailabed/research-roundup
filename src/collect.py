@@ -1,4 +1,3 @@
-import argparse
 import os
 import re
 from datetime import date, datetime, timedelta, timezone
@@ -357,10 +356,4 @@ def backfill(since):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--since", help="load older papers from this date, for example 2026-09-01")
-    arguments = parser.parse_args()
-    if arguments.since:
-        backfill(arguments.since)
-    else:
-        collect_all()
+    collect_all()

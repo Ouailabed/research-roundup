@@ -1,5 +1,42 @@
+import argparse
+
+from src.analyse import analyse_all
+from src.collect import backfill, collect_all
+from src.db import connect, latest_health
+from src.health import markdown_table
+from src.issue import build_issue
+
+
 def main():
-    print("hello")
+    parser = argparse.ArgumentParser(description="The Research Roundup agent")
+    commands = parser.add_subparsers(dest="command", required=True)
+    commands.add_parser("collect", help="read every source and save new papers")
+    analyse = commands.add_parser("analyse", help="score new papers with the cheap model")
+    analyse.add_argument("--limit", type=int, help="stop after this many papers")
+    build = commands.add_parser("build-issue", help="choose the papers and write the newsletter")
+    build.add_argument("--month", help="for example 2026-10. The default is the last full month.")
+    commands.add_parser("run", help="collect, analyse and build-issue")
+    older = commands.add_parser("backfill", help="load older papers, once")
+    older.add_argument("--since", required=True, help="for example 2026-09-01")
+    commands.add_parser("health", help="print the last source report as Markdown")
+    arguments = parser.parse_args()
+
+    if arguments.command == "collect":
+        collect_all()
+    elif arguments.command == "analyse":
+        analyse_all(arguments.limit)
+    elif arguments.command == "build-issue":
+        build_issue(arguments.month)
+    elif arguments.command == "run":
+        collect_all()
+        analyse_all()
+        build_issue()
+    elif arguments.command == "backfill":
+        backfill(arguments.since)
+    elif arguments.command == "health":
+        conn = connect()
+        print(markdown_table(latest_health(conn)))
+        conn.close()
 
 
 if __name__ == "__main__":

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Research Roundup | {{ month_label }}</title>
+<style>
+  body { margin: 0; padding: 0; background: #eef1f5; color: #1c2733; font-family: Georgia, "Times New Roman", serif; }
+  a { color: #17527a; }
+  .outer { background: #eef1f5; }
+  .sheet { background: #ffffff; max-width: 600px; }
+  .masthead { background: #12263a; padding: 28px 32px 24px; }
+  .kicker { margin: 0 0 6px; font-family: Arial, Helvetica, sans-serif; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: #a9bccd; }
+  .brand { margin: 0; font-size: 30px; line-height: 1.15; font-weight: normal; color: #ffffff; }
+  .intro { padding: 24px 32px 8px; font-size: 16px; line-height: 1.55; }
+  .intro p { margin: 0 0 12px; }
+  .glance { padding: 0 32px 8px; }
+  .glance h2, .label { margin: 0 0 8px; font-family: Arial, Helvetica, sans-serif; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #5a6b7b; }
+  .glance ol { margin: 0 0 12px; padding-left: 20px; font-size: 15px; line-height: 1.45; }
+  .paper { padding: 20px 32px 24px; border-top: 1px solid #dde3ea; }
+  .tag { display: inline-block; padding: 2px 8px; font-family: Arial, Helvetica, sans-serif; font-size: 12px; font-weight: bold; letter-spacing: .5px; color: #ffffff; }
+  .tag-EM { background: #a65300; }
+  .tag-DM { background: #17527a; }
+  .tag-Transversal { background: #2c6e49; }
+  .title { margin: 10px 0 6px; font-size: 21px; line-height: 1.25; font-weight: normal; }
+  .title a { color: #12263a; text-decoration: none; }
+  .meta { margin: 0 0 12px; font-family: Arial, Helvetica, sans-serif; font-size: 13px; line-height: 1.45; color: #5a6b7b; }
+  .summary { margin: 0 0 12px; font-size: 16px; line-height: 1.55; }
+  .takeaways { margin: 0 0 12px; padding-left: 20px; font-size: 15px; line-height: 1.5; }
+  .takeaways li { margin-bottom: 4px; }
+  .matters { margin: 0 0 12px; padding: 10px 12px; background: #f3f6f9; font-size: 15px; line-height: 1.5; }
+  .reason { margin: 0 0 12px; font-family: Arial, Helvetica, sans-serif; font-size: 13px; line-height: 1.45; color: #5a6b7b; }
+  .read { margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: bold; }
+  .footer { padding: 20px 32px 28px; background: #f3f6f9; border-top: 1px solid #dde3ea; font-family: Arial, Helvetica, sans-serif; font-size: 13px; line-height: 1.5; color: #5a6b7b; }
+  .footer p { margin: 0 0 10px; }
+  @media (max-width: 620px) {
+    .masthead, .intro, .glance, .paper, .footer { padding-left: 18px !important; padding-right: 18px !important; }
+    .brand { font-size: 26px !important; }
+  }
+</style>
+</head>
+<body>
+<table role="presentation" class="outer" width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center">
+      <table role="presentation" class="sheet" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
+        <tr>
+          <td class="masthead">
+            <p class="kicker">{{ month_label }}</p>
+            <h1 class="brand">The Research Roundup</h1>
+          </td>
+        </tr>
+        <tr>
+          <td class="intro">
+            <p>{{ intro }}</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="glance">
+            <h2>In this issue</h2>
+            <ol>
+              {% for paper in papers %}
+              <li>{{ paper.title }} ({{ paper.market_focus }})</li>
+              {% endfor %}
+            </ol>
+          </td>
+        </tr>
+        {% for paper in papers %}
+        <tr>
+          <td class="paper">
+            <span class="tag tag-{{ paper.market_focus }}">{{ paper.market_focus }}</span>
+            <h2 class="title"><a href="{{ paper.url }}">{{ paper.title }}</a></h2>
+            <p class="meta">{{ paper.authors }}<br>{{ paper.source }}{% if paper.published_label %}, {{ paper.published_label }}{% endif %}</p>
+            <p class="summary">{{ paper.summary }}</p>
+            <p class="label">Key takeaways</p>
+            <ul class="takeaways">
+              {% for takeaway in paper.takeaways %}
+              <li>{{ takeaway }}</li>
+              {% endfor %}
+            </ul>
+            <p class="matters"><strong>Why it matters:</strong> {{ paper.why_it_matters }}</p>
+            <p class="reason">Tagged {{ paper.market_focus }}: {{ paper.tag_reason }}</p>
+            <p class="read"><a href="{{ paper.url }}">Read the paper</a></p>
+          </td>
+        </tr>
+        {% endfor %}
+        <tr>
+          <td class="footer">
+            <p><strong>How papers are chosen.</strong> {{ selection_note }}</p>
+            <p><strong>Sources.</strong> This issue drew on {{ source_count }} sources: the five leading economics journals, G10 and European central banks, the 12 regional Federal Reserve banks, NBER, BPEA, the IMF and the BIS.</p>
+            <p>Summaries are written by AI from each paper's title and abstract only. Always check the paper itself before relying on a result.</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

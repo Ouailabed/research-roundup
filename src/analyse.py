@@ -19,7 +19,7 @@ Choose market_focus with these rules. Advanced economies are the ones on the IMF
 - EM: mainly about emerging or developing economies.
 - Transversal: global, many regions, or theory and methods not tied to one group. If the abstract names no country or region, use Transversal.
 
-tag_reason is one line that points to words in the abstract.
+tag_reason is one short sentence saying why the tag fits. It must name the country, region or method in the abstract that decided it, for example "The paper studies firms in India, an emerging economy."
 
 relevance is a whole number from 1 to 10. Use 9 or 10 for a clear use in views on rates, currencies, credit, inflation, growth or central bank policy. Use 5 for useful background. Use 1 for no link to markets or the economy.
 

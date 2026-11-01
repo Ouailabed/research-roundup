@@ -13,7 +13,7 @@
 - Improved on 1 November 2026: 56 sources (55 work, 1 not covered), full NBER abstracts, cleaner text, JPE abstracts from RePEc, an editor step and an opening note for each issue, a warning for cut abstracts, a catch-up job every 6 hours, a better site and newsletter, 105 tests.
 
 ## Current step
-293 papers to score from full text. The catch-up job works through them every 6 hours, then builds the September issue and chooses October again.
+About 290 papers to score from full text. The catch-up job restarts itself every 2 hours until they are done, then it builds the September issue and chooses October again.
 
 ## Next
 1. Tag 20 papers by hand in the guide (Task 25) for a real accuracy figure.
@@ -21,5 +21,6 @@
 3. Email the issue to myself, then submit. A draft reply to Yasmine is in Gmail.
 
 ## Open problems
+- No scheduled GitHub run had fired by noon on 1 November, though manual runs work. Check that Monday's weekly run happens.
 - Eight series give only a year, so they could not join the backfilled issues.
 - 21 recent JPE papers have no abstract until RePEc lists them. Each run tries again.

@@ -26,7 +26,7 @@ Feeds and APIs (56 sources)
    publish       writes the public site: latest issue, paper explorer and archive
 
 GitHub Actions runs everything every Monday and builds the new issue on the 1st of each month.
-A small job every 6 hours picks up anything a run left behind at Groq's daily limit.
+A small catch-up job picks up anything a run left behind at Groq's daily limit, and restarts itself until it's done.
 ```
 
 | Folder | What is in it |
@@ -156,7 +156,7 @@ python -m src.main build-issue --month 2026-10
 python -m src.main run
 ```
 
-`run` collects, analyses, builds any missing issue and writes the public site. `python -m src.main catch-up` does the same with no collecting. With no key, `analyse` says so and the saved results are used.
+`run` collects, analyses, builds any missing issue and writes the public site. `python -m src.main catch-up` does the same, but collects only if no run has for a week. `python -m src.main left` prints how many papers and issues are still waiting. With no key, `analyse` says so and the saved results are used.
 
 To run the tests:
 
@@ -183,6 +183,7 @@ Nothing. Groq's free tier gave each model 1,000 requests a day, 8,000 tokens a m
 - RePEc can lag a bank's own site by a few weeks.
 - Eight series give only a year, so they could not join the backfilled September and October issues. New papers from them are dated by the day the agent first sees them.
 - The free tier is slow: about 10 papers a minute, and the daily allowance refills steadily rather than all at once. A big backlog takes a few days, which the catch-up job handles without help.
+- GitHub doesn't promise when a scheduled run starts, and it can skip one. On 1 November no scheduled run had fired on this repo yet, though every manual run worked, and other people report the same on new repos. So the catch-up job restarts itself while work is left, and it collects if no run has for a week. Any job can also be started by hand with Run workflow on the Actions tab.
 - Scores bunch at 5 and 9, because the prompt names those values. The editor step works around this, but a better scale would need every paper scored again.
 - With more time: direct routes for the banks now on RePEc, a way to read the Reserve Bank of New Zealand if it opens an API, and a human check before each issue goes out.
 

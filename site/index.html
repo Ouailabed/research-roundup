@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A monthly newsletter of new economics research, with a searchable list of every paper the agent has read.">
 <title>The Research Roundup</title>
 <style>
   :root { --navy: #12263a; --ink: #1c2733; --soft: #5a6b7b; --line: #dde3ea; --wash: #f3f6f9; --link: #17527a; }
@@ -22,8 +23,15 @@
   .panel { background: #ffffff; padding: 18px; border: 1px solid var(--line); }
   iframe { display: block; width: 100%; height: 1800px; border: 1px solid var(--line); background: #ffffff; }
   .note { margin: 0 0 12px; font-size: 14px; color: var(--soft); }
+  .tags { margin: 0 0 14px; font: 13px/1.5 Arial, Helvetica, sans-serif; color: var(--soft); }
+  .tags .tag { margin-right: 4px; }
+  .tools { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-bottom: 12px; }
+  .tools .note { flex: 1 1 260px; margin: 0; }
+  .plain { padding: 6px 12px; font: bold 13px Arial, Helvetica, sans-serif; color: var(--navy); background: #ffffff; border: 1px solid #b9c5d1; cursor: pointer; }
+  .plain:hover { background: var(--wash); }
   .filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; margin-bottom: 14px; }
   label { display: grid; gap: 3px; font: bold 12px Arial, Helvetica, sans-serif; color: var(--soft); }
+  .two-wide { grid-column: span 2; }
   select, input { width: 100%; min-width: 0; padding: 7px 8px; font: 14px Arial, Helvetica, sans-serif; color: var(--ink); background: #ffffff; border: 1px solid #b9c5d1; border-radius: 2px; }
   .paper-row { border-top: 1px solid var(--line); }
   .paper-row > button { display: grid; grid-template-columns: 32px 92px minmax(0, 1fr); gap: 10px; align-items: start; width: 100%; padding: 10px 2px; text-align: left; font: inherit; color: inherit; background: transparent; border: 0; cursor: pointer; }
@@ -47,10 +55,12 @@
   th { color: var(--soft); }
   .wide { overflow-x: auto; }
   ul.issues { margin: 0 0 20px; padding-left: 20px; font-size: 17px; }
+  footer { max-width: 1000px; margin: 0 auto; padding: 0 18px 32px; font: 13px/1.5 Arial, Helvetica, sans-serif; color: var(--soft); }
   [hidden] { display: none !important; }
   button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
   @media (max-width: 640px) {
-    .filters { grid-template-columns: minmax(0, 1fr); }
+    .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .filters label:nth-child(7) { grid-column: span 2; }
     .paper-row > button { grid-template-columns: 26px minmax(0, 1fr); }
     .paper-row .title-cell { grid-column: 1 / -1; }
     .detail { padding-left: 2px; }
@@ -78,6 +88,7 @@
 
   <section id="explore" class="panel" hidden>
     <h2>Explore papers</h2>
+    <p class="tags"><span class="tag tag-EM">EM</span>mainly about emerging or developing economies. <span class="tag tag-DM">DM</span>mainly about advanced economies. <span class="tag tag-Transversal">Transversal</span>global, many regions, or theory and methods not tied to one group.</p>
     <div class="filters">
       <label>Issue<select id="fIssue"></select></label>
       <label>Tag<select id="fTag"></select></label>
@@ -85,9 +96,14 @@
       <label>Topic<select id="fTopic"></select></label>
       <label>First seen from<input id="fFrom" type="date"></label>
       <label>First seen to<input id="fTo" type="date"></label>
-      <label style="grid-column: 1 / -1">Search titles, authors and summaries<input id="fSearch" type="search"></label>
+      <label>Order<select id="fOrder"><option value="score">Highest score first</option><option value="newest">Newest first</option></select></label>
+      <label class="two-wide">Search titles, authors, summaries and topics<input id="fSearch" type="search"></label>
     </div>
-    <p class="note" id="count" role="status"></p>
+    <div class="tools">
+      <p class="note" id="count" role="status"></p>
+      <button type="button" class="plain" id="clear">Clear filters</button>
+      <button type="button" class="plain" id="csv">Download as CSV</button>
+    </div>
     <div id="papers"></div>
     <button type="button" class="more" id="more" hidden>Show more papers</button>
   </section>
@@ -98,17 +114,26 @@
     <h2>Source health report</h2>
     <p class="note" id="healthNote"></p>
     <div class="wide"><table>
-      <thead><tr><th>Source</th><th>Route</th><th>Status</th><th>Found</th><th>New</th><th>No abstract</th></tr></thead>
+      <thead><tr><th>Source</th><th>Route</th><th>Status</th><th>Found</th><th>New</th><th>No abstract</th><th>Note</th></tr></thead>
       <tbody id="health"></tbody>
     </table></div>
   </section>
 </main>
+<footer>
+  Every summary is written by AI from a paper's title and abstract only, so check the paper before relying on a result.
+  How it works, the full source list and the code are <a href="https://github.com/Ouailabed/research-roundup">on GitHub</a>.
+</footer>
 
 <script>
 (() => {
   'use strict';
   const $ = (id) => document.getElementById(id);
   const PAGE_SIZE = 40;
+  const FOCUSES = ['EM', 'DM', 'Transversal'];
+  // A topic used once or twice only makes the filter longer. Those papers can still be found by search.
+  const FEWEST_FOR_A_TOPIC = 3;
+  const FILTERS = ['fIssue', 'fTag', 'fSource', 'fTopic', 'fFrom', 'fTo', 'fOrder', 'fSearch'];
+  const CSV_COLUMNS = ['title', 'authors', 'source', 'published', 'first_seen', 'market_focus', 'tag_reason', 'relevance', 'topics', 'summary', 'url'];
   let data = null;
   let shown = PAGE_SIZE;
   const open = new Set();
@@ -140,15 +165,28 @@
     const from = $('fFrom').value;
     const to = $('fTo').value;
     const search = $('fSearch').value.trim().toLowerCase();
-    return data.papers.filter((paper) => (
+    const papers = data.papers.filter((paper) => (
       (!issue || paper.issues.includes(issue))
       && (!tag || paper.market_focus === tag)
       && (!source || paper.source === source)
       && (!topic || paper.topics.includes(topic))
       && (!from || paper.first_seen >= from)
       && (!to || paper.first_seen <= to)
-      && (!search || (paper.title + ' ' + paper.authors + ' ' + paper.summary).toLowerCase().includes(search))
+      && (!search || [paper.title, paper.authors, paper.summary, ...paper.topics].join(' ').toLowerCase().includes(search))
     ));
+    if ($('fOrder').value === 'newest') papers.sort((a, b) => b.first_seen.localeCompare(a.first_seen));
+    return papers;
+  }
+
+  const csvCell = (value) => '"' + String(value).replace(/"/g, '""') + '"';
+
+  function downloadCsv() {
+    const rows = filtered().map((paper) => CSV_COLUMNS.map((key) => csvCell(paper[key])).join(','));
+    // The byte order mark tells Excel the file is UTF-8, so accents survive.
+    const file = new Blob(['﻿' + [CSV_COLUMNS.join(','), ...rows].join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const link = el('a', { href: URL.createObjectURL(file), download: 'research-roundup-papers.csv' });
+    link.click();
+    URL.revokeObjectURL(link.href);
   }
 
   function detail(paper) {
@@ -183,15 +221,22 @@
       el('span', {}, el('span', { class: 'tag tag-' + paper.market_focus, text: paper.market_focus })),
       el('span', { class: 'title-cell' },
         el('span', { class: 'title', text: paper.title }),
-        el('span', { class: 'sub', text: paper.source + ', ' + paper.first_seen }))),
+        el('span', { class: 'sub', text: paper.source + ', ' + paper.first_seen + (paper.issues.length ? ', in the ' + monthLabel(paper.issues[0]) + ' issue' : '') }))),
       isOpen ? detail(paper) : null);
   }
 
   function render() {
     const papers = filtered();
-    $('count').textContent = papers.length + ' of ' + data.papers.length + ' papers. Click a paper to read more.';
+    const tags = FOCUSES.map((tag) => papers.filter((paper) => paper.market_focus === tag).length + ' ' + tag).join(', ');
+    $('count').textContent = papers.length + ' of ' + data.papers.length + ' papers (' + tags + '). Click a paper to read more.';
     $('papers').replaceChildren(...papers.slice(0, shown).map(paperRow));
     $('more').hidden = papers.length <= shown;
+  }
+
+  function fitFrame() {
+    // The newsletter is taller on a phone, so the frame takes its height from the page inside it.
+    const inside = $('latestFrame').contentDocument;
+    if (inside && inside.body && !$('latest').hidden) $('latestFrame').style.height = inside.documentElement.scrollHeight + 'px';
   }
 
   function showPage(page) {
@@ -200,6 +245,7 @@
       if (button.dataset.page === page) button.setAttribute('aria-current', 'page');
       else button.removeAttribute('aria-current');
     });
+    fitFrame();
   }
 
   function currentPage() {
@@ -209,16 +255,26 @@
 
   function setUp() {
     const months = data.issues.map((issue) => issue.month);
-    const topics = [...new Set(data.papers.flatMap((paper) => paper.topics))].sort((a, b) => a.localeCompare(b));
+    const uses = {};
+    data.papers.flatMap((paper) => paper.topics).forEach((topic) => { uses[topic] = (uses[topic] || 0) + 1; });
+    const topics = Object.keys(uses).filter((topic) => uses[topic] >= FEWEST_FOR_A_TOPIC).sort((a, b) => a.localeCompare(b));
     const sources = [...new Set(data.papers.map((paper) => paper.source))].sort((a, b) => a.localeCompare(b));
     options($('fIssue'), 'All papers', months, monthLabel);
-    options($('fTag'), 'All tags', ['EM', 'DM', 'Transversal']);
+    options($('fTag'), 'All tags', FOCUSES);
     options($('fSource'), 'All sources', sources);
-    options($('fTopic'), 'All topics', topics);
-    ['fIssue', 'fTag', 'fSource', 'fTopic', 'fFrom', 'fTo', 'fSearch'].forEach((id) => {
+    options($('fTopic'), 'All topics', topics, (topic) => topic + ' (' + uses[topic] + ')');
+    FILTERS.forEach((id) => {
       $(id).addEventListener('input', () => { shown = PAGE_SIZE; render(); });
     });
     $('more').addEventListener('click', () => { shown += PAGE_SIZE; render(); });
+    $('csv').addEventListener('click', downloadCsv);
+    $('clear').addEventListener('click', () => {
+      FILTERS.forEach((id) => { $(id).value = id === 'fOrder' ? 'score' : ''; });
+      shown = PAGE_SIZE;
+      render();
+    });
+    $('latestFrame').addEventListener('load', fitFrame);
+    window.addEventListener('resize', fitFrame);
 
     if (data.issues.length) {
       const latest = data.issues[0];
@@ -229,9 +285,12 @@
       $('latestFrame').hidden = true;
     }
     $('issues').replaceChildren(...data.issues.map((issue) => el('li', {}, el('a', { href: 'issues/' + issue.file, text: monthLabel(issue.month) }))));
-    $('healthNote').textContent = data.health.length ? 'From the last run, on ' + data.health[0].run_at.slice(0, 10) + '.' : 'No run has been recorded yet.';
+    const read = data.health.filter((row) => row.status === 'working' || row.status === 'fallback').length;
+    $('healthNote').textContent = data.health.length
+      ? 'From the last run, on ' + data.health[0].run_at.slice(0, 10) + ': ' + read + ' of ' + data.health.length + ' sources read. Found is the number of recent papers checked, and New is how many of those were new.'
+      : 'No run has been recorded yet.';
     $('health').replaceChildren(...data.health.map((row) => el('tr', {},
-      [row.source, row.route, row.status.replace('_', ' '), row.found, row.new, row.missing_abstracts].map((cell) => el('td', { text: String(cell) })))));
+      [row.source, row.route, row.status.replace('_', ' '), row.found, row.new, row.missing_abstracts, row.note].map((cell) => el('td', { text: String(cell) })))));
     render();
   }
 

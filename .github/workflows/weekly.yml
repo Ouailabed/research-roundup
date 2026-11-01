@@ -8,6 +8,11 @@ on:
 permissions:
   contents: write
 
+# The weekly and monthly jobs both write the database, which git can't merge, so they take turns.
+concurrency:
+  group: data-writes
+  cancel-in-progress: false
+
 jobs:
   collect-and-analyse:
     runs-on: ubuntu-latest

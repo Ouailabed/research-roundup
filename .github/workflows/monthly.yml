@@ -12,6 +12,11 @@ on:
 permissions:
   contents: write
 
+# The weekly and monthly jobs both write the database, which git can't merge, so they take turns.
+concurrency:
+  group: data-writes
+  cancel-in-progress: false
+
 jobs:
   build-issue:
     runs-on: ubuntu-latest
@@ -25,6 +30,8 @@ jobs:
           python-version: "3.14"
           cache: pip
       - run: pip install -r requirements.txt
+      # Score anything the last weekly run left, so the issue is chosen from the whole month.
+      - run: python -m src.main analyse
       - run: python -m src.main build-issue ${MONTH:+--month "$MONTH"}
       - name: Save the issue
         run: |

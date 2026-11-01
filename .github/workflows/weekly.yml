@@ -22,13 +22,18 @@ jobs:
       CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
     steps:
       - uses: actions/checkout@v4
+        # A run that waited its turn must start from the newest database, not the one it was queued with.
+        with:
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: "3.14"
           cache: pip
       - run: pip install -r requirements.txt
       - run: python -m src.main run
+      # If the run fails partway, keep what it finished.
       - name: Save the results
+        if: ${{ !cancelled() }}
         run: |
           git config user.name "research-roundup-agent"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

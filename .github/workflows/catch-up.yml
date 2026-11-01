@@ -4,7 +4,7 @@ name: Catch up
 # so the rest doesn't wait a week. With nothing left to do, it changes nothing.
 on:
   schedule:
-    - cron: "17 */6 * * *"
+    - cron: "47 */6 * * *"
   workflow_dispatch:
 
 permissions:
@@ -25,12 +25,17 @@ jobs:
       again: ${{ steps.save.outputs.again }}
     steps:
       - uses: actions/checkout@v4
+        # A run that waited its turn must start from the newest database, not the one it was queued with.
+        with:
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: "3.14"
           cache: pip
       - run: pip install -r requirements.txt
+      # If this fails partway, the save below still keeps what it finished.
       - run: python -m src.main catch-up
+        continue-on-error: true
       - name: Save the results
         id: save
         run: |

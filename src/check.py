@@ -78,6 +78,10 @@ def check_all():
         """SELECT p.title, p.abstract, a.summary, a.market_focus FROM papers p
         JOIN analyses a ON a.paper_id = p.id WHERE p.duplicate_of IS NULL"""
     ).fetchall()
+    written = conn.execute(
+        """SELECT p.title, p.abstract, w.summary, w.takeaways, w.why_it_matters FROM papers p
+        JOIN writeups w ON w.paper_id = p.id"""
+    ).fetchall()
     conn.close()
     conflicts = [(row["title"], tag_conflict(row["market_focus"], f"{row['title']} {row['abstract']}")) for row in rows]
     conflicts = [item for item in conflicts if item[1]]
@@ -89,6 +93,11 @@ def check_all():
         print(f"- {title}: {reason}")
     print(f"{len(numbers)} summaries hold a number that isn't in the abstract, often just rounded:")
     for title, found in numbers:
+        print(f"- {title}: {', '.join(found)}")
+    published = [(row["title"], unseen_numbers(f"{row['summary']} {row['takeaways']} {row['why_it_matters']}", f"{row['title']} {row['abstract']}")) for row in written]
+    published = [item for item in published if item[1]]
+    print(f"Of {len(written)} write-ups, {len(published)} hold such a number:")
+    for title, found in published:
         print(f"- {title}: {', '.join(found)}")
 
 

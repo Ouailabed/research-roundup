@@ -203,7 +203,7 @@ def test_an_opening_note_is_written_once_and_saved(monkeypatch, tmp_path):
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "test.db")
     monkeypatch.setattr(issue, "have_key", lambda: True)
     monkeypatch.setattr(issue, "groq_client", lambda: None)
-    answers = iter([Overview(overview="Rates matter — a lot.")])
+    answers = iter([Overview(overview="Rates matter \u2014 a lot.")])
     monkeypatch.setattr(issue, "checked_answer", lambda *args: next(answers))
     conn = db.connect()
     papers = [{"title": "A paper", "market_focus": "DM", "summary": "It finds something."}]

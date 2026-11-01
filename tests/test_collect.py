@@ -1,9 +1,13 @@
 from pathlib import Path
+from types import SimpleNamespace
 
 import feedparser
+import pytest
+from bs4 import BeautifulSoup
 
-from src.collect import best_first_seen, flip_name, paper_from_entry, rebuild_abstract
-from src.models import clean_text, clean_url, make_id
+from src import collect, db
+from src.collect import abstract_on_page, best_first_seen, fill_from_pages, flip_name, is_research, new_paper, paper_from_entry, read_nber_listing, rebuild_abstract
+from src.models import clean_abstract, clean_text, clean_url, make_id
 
 SOURCE = {"name": "Sample", "group": "research_body"}
 FEED = Path(__file__).parent / "sample_feed.xml"
@@ -54,6 +58,130 @@ def test_doi_wins_over_url_and_is_lower_case():
 
 def test_clean_text_keeps_a_less_than_sign():
     assert clean_text("p < 0.05 and <i>more</i>") == "p < 0.05 and more"
+
+
+def test_clean_text_removes_escaped_tags():
+    assert clean_text("the first &lt;i&gt;real-time&lt;/i&gt; data") == "the first real-time data"
+
+
+def test_clean_text_repairs_wrong_encoding():
+    assert clean_text("Japanâ€™s markets") == "Japan’s markets"
+    assert clean_text("GarcÃ\xada-Miralles") == "García-Miralles"
+
+
+@pytest.mark.parametrize("text", [
+    "Abstract We study rates.",
+    "ABSTRACT: We study rates.",
+    "We study rates. JEL Classification: E31, E52",
+    "We study rates. (JEL E31, E52)",
+])
+def test_labels_and_jel_codes_leave_the_abstract(text):
+    assert clean_abstract(text) == "We study rates."
+
+
+def test_a_sentence_that_starts_with_summary_is_kept():
+    assert clean_abstract("Summary statistics hide a lot.") == "Summary statistics hide a lot."
+
+
+def test_a_placeholder_counts_as_no_abstract():
+    assert clean_abstract("No abstract is available for this item.") == ""
+
+
+@pytest.mark.parametrize("title", [
+    "Front Matter",
+    "Frontmatter of Econometrica 94 Iss. 2",
+    "Backmatter of Econometrica Vol. 94 Iss. 5",
+    "Recent Referees",
+    "JPE Turnaround Times",
+    "Report of Independent Auditor",
+    "Comments and Discussion",
+    "General Discussion",
+    "Correction to: A Further Augmentation of the Solow Model",
+    "Online Appendix for: How Do Voters Respond",
+    "The Econometric Society 2025 Annual Report of the President",
+])
+def test_journal_housekeeping_is_not_research(title):
+    assert not is_research(new_paper(SOURCE, title, "", "", "https://example.org/a", "", ""))
+
+
+@pytest.mark.parametrize("title", [
+    "Evidence from Annual Reports",
+    "Comment on Asset Bubbles",
+    "Nobel Lecture: Creative Destruction and Economic Growth",
+])
+def test_real_papers_are_kept(title):
+    assert is_research(new_paper(SOURCE, title, "", "", "https://example.org/a", "", ""))
+
+
+NBER_PAGE = """<html><body><div class="page-header__intro"><div class="page-header__intro-inner">
+<p>We study a made-up question at length.</p><p>The full text is here.</p></div></div></body></html>"""
+
+
+def test_nber_abstract_is_read_from_its_page():
+    soup = BeautifulSoup(NBER_PAGE, "html.parser")
+    assert abstract_on_page(soup) == "We study a made-up question at length. The full text is here."
+
+
+def test_the_nber_listing_gets_full_abstracts_for_new_papers_only(monkeypatch):
+    listing = {"results": [
+        {"url": "/papers/w1", "title": "New paper", "authors": ["Ana Silva"], "abstract": "We study a made"},
+        {"url": "/papers/w2", "title": "Known paper", "authors": ["Ben Okoye"], "abstract": "We also study"},
+    ]}
+    pages = []
+
+    def fake_get(url, **kwargs):
+        pages.append(url)
+        return SimpleNamespace(json=lambda: listing if not pages[1:] else {"results": []}, text=NBER_PAGE)
+
+    monkeypatch.setattr(collect, "polite_get", fake_get)
+    known = {"https://www.nber.org/papers/w2"}
+    dates = {"10.3386/w1": "2026-09-14", "10.3386/w2": "2026-09-15"}
+    new, old = read_nber_listing(SOURCE, dates, known)
+    assert new.abstract == "We study a made-up question at length. The full text is here."
+    assert old.abstract == "We also study"
+    assert "https://www.nber.org/papers/w2" not in pages
+
+
+def test_a_page_that_fails_keeps_the_short_abstract(monkeypatch):
+    def broken_get(url, **kwargs):
+        raise RuntimeError("www.nber.org answered 500")
+
+    monkeypatch.setattr(collect, "polite_get", broken_get)
+    paper = new_paper(SOURCE, "A paper", "", "We study a made", "https://www.nber.org/papers/w1", "", "")
+    fill_from_pages({"name": "NBER", "abstract_from_page": True}, [paper], set())
+    assert paper.abstract == "We study a made"
+
+
+def test_a_missing_abstract_is_filled_from_repec(monkeypatch, tmp_path):
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "test.db")
+    page = '<html><head><meta name="citation_abstract" content="Abstract We study rates."></head></html>'
+    asked = []
+
+    def fake_get(url, **kwargs):
+        asked.append(url)
+        return SimpleNamespace(text=page)
+
+    monkeypatch.setattr(collect, "polite_get", fake_get)
+    conn = db.connect()
+    db.save_papers(conn, [new_paper({"name": "JPE", "group": "journal"}, "A paper", "", "", "https://doi.org/10.1086/742714", "10.1086/742714", "")])
+    collect.fill_from_repec(conn, {"name": "JPE", "repec_journal": "ucp/jpolec"})
+    assert asked == ["https://ideas.repec.org/a/ucp/jpolec/doi10.1086-742714.html"]
+    assert conn.execute("SELECT abstract FROM papers").fetchone()[0] == "We study rates."
+    conn.close()
+
+
+def test_a_paper_repec_does_not_list_yet_stays_empty(monkeypatch, tmp_path):
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "test.db")
+
+    def not_found(url, **kwargs):
+        raise RuntimeError("ideas.repec.org answered 404")
+
+    monkeypatch.setattr(collect, "polite_get", not_found)
+    conn = db.connect()
+    db.save_papers(conn, [new_paper({"name": "JPE", "group": "journal"}, "A paper", "", "", "https://doi.org/10.1086/1", "10.1086/1", "")])
+    collect.fill_from_repec(conn, {"name": "JPE", "repec_journal": "ucp/jpolec"})
+    assert conn.execute("SELECT abstract FROM papers").fetchone()[0] == ""
+    conn.close()
 
 
 def test_openalex_abstract_is_rebuilt_in_order():

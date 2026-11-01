@@ -8,7 +8,7 @@ sources:
     type: rss
     reader: nber
     url: https://www.nber.org/rss/new.xml
-    notes: Full abstracts in the feed, but no dates, so the dates come from Crossref (prefix 10.3386). The backfill uses the JSON behind NBER's public paper list, because the feed can't look back.
+    notes: Full abstracts in the feed, but no dates, so the dates come from Crossref (prefix 10.3386). The backfill uses the JSON behind NBER's public paper list, because the feed can't look back. That JSON cuts abstracts at about 300 characters, so the backfill reads each new paper's page for the full text.
 
   - name: IMF
     group: research_body
@@ -141,7 +141,7 @@ sources:
     type: html
     status: not_covered
     url: https://www.rbnz.govt.nz/research-and-publications/analytical-notes
-    notes: Not covered. The site answered 403 to a script on 31 October 2026, and we never disguise the script as a browser. RePEc IDEAS stops at 2023 for Discussion Papers and 2024 for Analytical Notes.
+    notes: Not covered. The site answered 403 to a script on 31 October 2026 and again on 1 November, and we never disguise the script as a browser. RePEc IDEAS stops at 2023 for Discussion Papers and 2024 for Analytical Notes. OpenAlex and Crossref show only staff papers published elsewhere, not the bank's own series.
 
   - name: Boston Fed
     group: regional_fed
@@ -312,6 +312,102 @@ sources:
     url: https://ideas.repec.org/s/nbp/nbpmis.html
     notes: Working Papers through RePEc IDEAS. Dates show only the year.
 
+  - name: Czech National Bank
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/cnb/wpaper.html
+    notes: Working Papers through RePEc IDEAS. Dates show the month.
+
+  - name: Magyar Nemzeti Bank
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/mnb/wpaper.html
+    notes: MNB Working Papers through RePEc IDEAS. Dates show only the year.
+
+  - name: Bank of Greece
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/bog/wpaper.html
+    notes: Working Papers through RePEc IDEAS. Dates show the month.
+
+  - name: Latvijas Banka
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/ltv/wpaper.html
+    notes: Working Papers through RePEc IDEAS.
+
+  - name: Bank of Lithuania
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/lie/wpaper.html
+    notes: Working Paper Series through RePEc IDEAS.
+
+  - name: Eesti Pank
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/eea/boewps.html
+    notes: Bank of Estonia Working Papers through RePEc IDEAS.
+
+  - name: National Bank of Slovakia
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/svk/wpaper.html
+    notes: Working and Discussion Papers through RePEc IDEAS. Dates show the month.
+
+  - name: Croatian National Bank
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/hnb/wpaper.html
+    notes: Working Papers through RePEc IDEAS.
+
+  - name: Central Bank of Iceland
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/ice/wpaper.html
+    notes: Working Papers through RePEc IDEAS. Dates show the month.
+
+  - name: Banque centrale du Luxembourg
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/bcl/bclwop.html
+    notes: BCL Working Papers through RePEc IDEAS. Dates show the month.
+
+  - name: Central Bank of Cyprus
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/cyb/wpaper.html
+    notes: Working Papers through RePEc IDEAS. Dates show the month.
+
+  - name: National Bank of Ukraine
+    group: european_central_bank
+    type: html
+    reader: repec
+    status: fallback
+    url: https://ideas.repec.org/s/ukb/wpaper.html
+    notes: Working Papers through RePEc IDEAS. Dates show the month.
+
   - name: American Economic Review
     group: journal
     type: api
@@ -333,7 +429,8 @@ sources:
     reader: openalex
     issn: 0022-3808
     url: https://api.openalex.org/works
-    notes: Only 4 of 25 recent articles had abstracts in OpenAlex, and 0 of 25 in Crossref. Papers with no abstract are left out for that cycle.
+    repec_journal: ucp/jpolec
+    notes: Only 4 of 25 recent articles had abstracts in OpenAlex, and 0 of 25 in Crossref. RePEc IDEAS has most of them, so papers with no abstract are looked up there, at an address built from the DOI. Papers RePEc doesn't list yet are left out for that cycle.
 
   - name: Quarterly Journal of Economics
     group: journal

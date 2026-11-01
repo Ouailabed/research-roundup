@@ -10,12 +10,19 @@ from src.db import connect, count_missing_abstracts, known_urls, save_health, sa
 from src.dedupe import mark_duplicates
 from src.fetch import contact_email, polite_get, safe_text
 from src.health import print_table
-from src.models import Paper, clean_text, clean_url, make_id
+from src.models import Paper, clean_abstract, clean_text, clean_url, make_id
 
 REPEC_PAPERS_PER_RUN = 30
 BACKFILL_ROWS = 200
 NBER_DOIS = "https://api.crossref.org/prefixes/10.3386/works"
 NBER_LISTING = "https://www.nber.org/api/v1/working_page_listing/contentType/working_paper/_/_/search"
+# Journals list these next to their papers, but none of them is research.
+NOT_RESEARCH = re.compile(
+    r"^(front ?matter|back ?matter|recent referees|jpe turnaround times|report of independent auditor|"
+    r"submission of manuscripts|correction to|corrigendum|erratum|comments? and discussion|general discussion|"
+    r"online appendix)|report of the president",
+    re.IGNORECASE,
+)
 
 
 def new_paper(source, title, authors, abstract, url, doi, published):
@@ -23,8 +30,8 @@ def new_paper(source, title, authors, abstract, url, doi, published):
     return Paper(
         id=make_id(doi, url),
         title=clean_text(title),
-        authors=authors,
-        abstract=clean_text(abstract),
+        authors=clean_text(authors),
+        abstract=clean_abstract(abstract),
         url=clean_url(url),
         doi=doi,
         source=source["name"],
@@ -76,7 +83,7 @@ def nber_dates(since):
     return {item["DOI"].lower(): item["created"]["date-time"][:10] for item in items}
 
 
-def read_nber_listing(source, dates):
+def read_nber_listing(source, dates, known):
     # The feed can't look back, but the JSON behind NBER's public paper list can.
     papers = []
     for page in range(1, 40):
@@ -92,6 +99,8 @@ def read_nber_listing(source, dates):
                 papers.append(new_paper(source, item["title"], authors, item["abstract"], url, doi, dates[doi]))
         if not in_range:
             break
+    # That JSON cuts each abstract at about 300 characters, so the full text comes from the paper's own page.
+    fill_from_pages(dict(source, abstract_from_page=True), papers, known)
     return papers
 
 
@@ -99,7 +108,7 @@ def read_nber(source, known):
     since = source.get("since") or (date.today() - timedelta(days=60)).isoformat()
     dates = nber_dates(since)
     if source.get("since"):
-        return read_nber_listing(source, dates)
+        return read_nber_listing(source, dates, known)
     papers = read_rss(source, known)
     for paper in papers:
         paper.published = dates.get(paper.id, "")
@@ -237,11 +246,19 @@ def route_of(source):
     return source.get("reader") or source["type"]
 
 
+def is_research(paper):
+    return not NOT_RESEARCH.search(paper.title)
+
+
 def read_source(source, known):
-    return READERS[route_of(source)](source, known)
+    return [paper for paper in READERS[route_of(source)](source, known) if is_research(paper)]
 
 
 def abstract_on_page(soup):
+    # NBER keeps its abstract in this block. Other sites put it under a heading.
+    block = soup.select_one(".page-header__intro-inner")
+    if block:
+        return clean_abstract(block.get_text(" ", strip=True))
     heading = soup.find(string=re.compile(r"^\s*Abstract\s*:?\s*$"))
     if not heading:
         return ""
@@ -251,7 +268,7 @@ def abstract_on_page(soup):
             break
         if node.name == "p":
             parts.append(node.get_text(" ", strip=True))
-    return clean_text(" ".join(parts))
+    return clean_abstract(" ".join(parts))
 
 
 def authors_on_page(soup):
@@ -279,6 +296,22 @@ def fill_from_pages(source, papers, known):
             print(f"{source['name']}: kept the feed text for {paper.url}, {safe_text(error)}")
 
 
+def fill_from_repec(conn, source):
+    # OpenAlex has few JPE abstracts. RePEc has most of them, at an address built from the DOI.
+    rows = conn.execute(
+        "SELECT id, doi FROM papers WHERE source = ? AND abstract = '' AND doi <> ''",
+        (source["name"],),
+    ).fetchall()
+    for row in rows:
+        url = f"https://ideas.repec.org/a/{source['repec_journal']}/doi{row['doi'].replace('/', '-')}.html"
+        try:
+            soup = BeautifulSoup(polite_get(url).text, "html.parser")
+            conn.execute("UPDATE papers SET abstract = ? WHERE id = ?", (clean_abstract(meta_content(soup, "citation_abstract")), row["id"]))
+        except Exception as error:
+            print(f"{source['name']}: no RePEc abstract yet for {row['doi']}, {safe_text(error)}")
+    conn.commit()
+
+
 def collect_source(conn, source, known, run_at):
     row = {
         "run_at": run_at,
@@ -299,6 +332,8 @@ def collect_source(conn, source, known, run_at):
         fill_from_pages(source, papers, known)
         row["found"] = source.get("scanned", len(papers))
         row["new"] = save_papers(conn, papers)
+        if source.get("repec_journal"):
+            fill_from_repec(conn, source)
         row["missing_abstracts"] = count_missing_abstracts(conn, source["name"])
     except Exception as error:
         row["status"] = "failed"

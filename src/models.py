@@ -4,7 +4,10 @@ from dataclasses import dataclass
 from html import unescape
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
+from ftfy import fix_text
+
 TRACKING_PREFIXES = ("utm_", "fbclid", "gclid")
+NO_ABSTRACT = "No abstract is available for this item."
 
 
 @dataclass
@@ -23,8 +26,19 @@ class Paper:
 
 
 def clean_text(text):
-    without_tags = re.sub(r"</?[a-zA-Z][^>]*>", " ", text or "")
-    return " ".join(unescape(without_tags).split())
+    # Some sources escape their tags, so unescape first or the tags slip through.
+    without_tags = re.sub(r"</?[a-zA-Z][^>]*>", " ", unescape(text or ""))
+    # Some series store text with the wrong encoding, which turns ’ into â€™.
+    repaired = fix_text(without_tags, unescape_html=False, uncurl_quotes=False, fix_latin_ligatures=False, fix_character_width=False)
+    return " ".join(repaired.split())
+
+
+def clean_abstract(text):
+    text = clean_text(text)
+    # Journals start with the word Abstract, and the ECB and the AER end with JEL codes.
+    text = re.sub(r"^(?i:abstract|summary)\s*[:.]?\s+(?=[A-Z])", "", text)
+    text = re.sub(r"\s*(\(JEL [A-Z0-9, ]+\)|JEL Classification:[A-Z0-9, ]*)\.?$", "", text)
+    return "" if text == NO_ABSTRACT else text
 
 
 def clean_url(url):

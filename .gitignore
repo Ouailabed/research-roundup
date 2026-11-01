@@ -11,6 +11,7 @@ __pycache__/
 RESEARCH_ROUNDUP_PROMPT.md
 CLAUDE.md
 EXAM.md
+AGENTS.md
 .claude/
 go-live.ps1
 data/hand_tags.csv

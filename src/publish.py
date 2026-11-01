@@ -4,7 +4,7 @@ import re
 import shutil
 
 from src.config import ROOT
-from src.db import connect, latest_health
+from src.db import connect, latest_health, saved_overview
 from src.models import no_em_dash
 
 SITE = ROOT / "site"
@@ -27,7 +27,7 @@ def clean_topics(topics):
     # Models write "Inflation" and "inflation", or "labor" and "labour", which would be separate filters.
     cleaned = set()
     for topic in topics:
-        topic = re.sub(r"\blabor\b", "labour", topic.strip().lower())
+        topic = re.sub(r"\blabor\b", "labour", no_em_dash(topic).strip().lower())
         cleaned.add(SAME_TOPIC.get(topic, topic))
     return sorted(cleaned)
 
@@ -53,9 +53,13 @@ def paper_rows(conn):
 
 
 def site_data(conn):
+    built = sorted((SITE / "issues").glob("*.html"), reverse=True)
+    published = {path.stem for path in built}
     months = {}
+    # A month can be chosen before its page exists, and the site can't point to a page that isn't there.
     for row in conn.execute("SELECT month, paper_id FROM issues ORDER BY month DESC, position"):
-        months.setdefault(row["paper_id"], []).append(row["month"])
+        if row["month"] in published:
+            months.setdefault(row["paper_id"], []).append(row["month"])
     papers = paper_rows(conn)
     for paper in papers:
         paper["topics"] = clean_topics(json.loads(paper["topics"]))
@@ -63,9 +67,11 @@ def site_data(conn):
         for field in ("title", "summary", "tag_reason", "why_it_matters"):
             paper[field] = no_em_dash(paper[field])
         paper["issues"] = months.get(paper["id"], [])
-    built = sorted((SITE / "issues").glob("*.html"), reverse=True)
     return {
-        "issues": [{"month": path.stem, "file": path.name} for path in built],
+        "issues": [
+            {"month": path.stem, "file": path.name, "overview": no_em_dash(saved_overview(conn, path.stem))}
+            for path in built
+        ],
         "papers": papers,
         "health": [dict(row) for row in latest_health(conn)],
     }

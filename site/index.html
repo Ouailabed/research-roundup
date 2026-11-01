@@ -3,69 +3,222 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="A monthly newsletter of new economics research, with a searchable list of every paper the agent has read.">
+<meta name="description" content="A monthly newsletter of new economics research, with a dashboard and a searchable list of every paper the agent has read.">
+<meta name="theme-color" content="#12263a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2312263a'/%3E%3Crect x='7' y='16' width='5' height='10' rx='1' fill='%23e8894a'/%3E%3Crect x='14' y='7' width='5' height='19' rx='1' fill='%235aa2ec'/%3E%3Crect x='21' y='12' width='5' height='14' rx='1' fill='%233cc293'/%3E%3C/svg%3E">
 <title>The Research Roundup</title>
 <style>
-  :root { --navy: #12263a; --ink: #1c2733; --soft: #5a6b7b; --line: #dde3ea; --wash: #f3f6f9; --link: #17527a; }
+  /* Tag colours were checked for colour blindness against both surfaces, so any change needs checking again. */
+  :root {
+    color-scheme: light;
+    --page: #f2f4f7; --surface: #ffffff; --raised: #f5f7fa; --ink: #16232f; --soft: #56677a;
+    --line: #e3e8ee; --axis: #c5ced8; --field: #b4c0cd; --link: #1c5f9c;
+    --mast: #12263a; --mast-soft: #a9bccd; --strong: #12263a; --quiet: #b6c1cc; --on-strong: #ffffff;
+    --EM: #c4540a; --DM: #2470c2; --Transversal: #0a8360; --on-mark: #ffffff;
+    --good: #0ca30c; --warn: #b97a00; --bad: #d03b3b;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page: #0e151d; --surface: #17212c; --raised: #1f2b38; --ink: #e6ecf2; --soft: #a6b4c2;
+      --line: #2a3745; --axis: #3f4f60; --field: #4b5c6e; --link: #7db6ec;
+      --mast: #0b1622; --strong: #d6e0ea; --quiet: #4f6072; --on-strong: #0d1620;
+      --EM: #d9692a; --DM: #3f8ee6; --Transversal: #1fa878; --on-mark: #0d1620;
+      --warn: #fab219;
+    }
+  }
   * { box-sizing: border-box; }
-  body { margin: 0; background: #eef1f5; color: var(--ink); font-family: Georgia, "Times New Roman", serif; line-height: 1.5; }
+  body { margin: 0; background: var(--page); color: var(--ink); font-family: var(--sans); line-height: 1.5; }
   a { color: var(--link); }
-  .ui { font-family: Arial, Helvetica, sans-serif; }
-  header { background: var(--navy); color: #ffffff; }
-  .bar { max-width: 1000px; margin: 0 auto; padding: 22px 18px 0; }
-  h1 { margin: 0; font-size: 30px; font-weight: normal; }
-  .lede { margin: 4px 0 14px; color: #a9bccd; font-size: 15px; }
-  nav { display: flex; flex-wrap: wrap; gap: 4px; }
-  nav button { padding: 9px 14px; font: bold 14px Arial, Helvetica, sans-serif; color: #d6e0ea; background: transparent; border: 0; border-bottom: 3px solid transparent; cursor: pointer; }
+  header { background: var(--mast); color: #ffffff; }
+  .bar { max-width: 1120px; margin: 0 auto; padding: 22px 16px 0; }
+  h1 { margin: 0; font: normal 30px/1.2 var(--serif); }
+  .lede { margin: 4px 0 14px; color: var(--mast-soft); font-size: 15px; }
+  nav { display: flex; flex-wrap: wrap; gap: 2px; }
+  nav button { padding: 9px 14px; font: 600 14px var(--sans); color: #d6e0ea; background: transparent; border: 0; border-bottom: 3px solid transparent; cursor: pointer; }
+  nav button:hover { color: #ffffff; }
   nav button[aria-current="page"] { color: #ffffff; border-bottom-color: #ffffff; }
-  main { max-width: 1000px; margin: 0 auto; padding: 20px 18px 48px; }
-  h2 { margin: 0 0 12px; font-size: 22px; font-weight: normal; color: var(--navy); }
-  .panel { background: #ffffff; padding: 18px; border: 1px solid var(--line); }
-  iframe { display: block; width: 100%; height: 1800px; border: 1px solid var(--line); background: #ffffff; }
+  main { max-width: 1120px; margin: 0 auto; padding: 18px 16px 40px; }
+  h2 { margin: 0 0 10px; font: normal 23px/1.25 var(--serif); }
+  h2:focus { outline: none; }
+  h3 { margin: 0; font: 600 15px/1.35 var(--sans); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; }
   .note { margin: 0 0 12px; font-size: 14px; color: var(--soft); }
-  .tags { margin: 0 0 14px; font: 13px/1.5 Arial, Helvetica, sans-serif; color: var(--soft); }
+  .kicker { margin: 0 0 2px; font-size: 12px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--soft); }
+  .stack-gap > * + * { margin-top: 14px; }
+
+  /* Buttons and fields */
+  .btn, .plain { display: inline-block; padding: 7px 13px; font: 600 13px var(--sans); text-decoration: none; border-radius: 6px; cursor: pointer; }
+  .btn { color: var(--on-strong); background: var(--strong); border: 1px solid var(--strong); }
+  .plain { color: var(--ink); background: var(--surface); border: 1px solid var(--field); }
+  .plain:hover { background: var(--raised); }
+  label { display: grid; gap: 3px; font: 600 12px var(--sans); color: var(--soft); }
+  select, input { width: 100%; min-width: 0; padding: 7px 8px; font: 14px var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--field); border-radius: 6px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+  /* Tags */
+  .tag { display: inline-block; padding: 1px 7px; font: 600 12px/1.5 var(--sans); color: var(--on-mark); border-radius: 3px; }
+  .tag-EM { background: var(--EM); }
+  .tag-DM { background: var(--DM); }
+  .tag-Transversal { background: var(--Transversal); }
+  .tags { margin: 0 0 14px; font-size: 13px; color: var(--soft); }
   .tags .tag { margin-right: 4px; }
-  .tools { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-bottom: 12px; }
-  .tools .note { flex: 1 1 260px; margin: 0; }
-  .plain { padding: 6px 12px; font: bold 13px Arial, Helvetica, sans-serif; color: var(--navy); background: #ffffff; border: 1px solid #b9c5d1; cursor: pointer; }
-  .plain:hover { background: var(--wash); }
-  .filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; margin-bottom: 14px; }
-  label { display: grid; gap: 3px; font: bold 12px Arial, Helvetica, sans-serif; color: var(--soft); }
-  .two-wide { grid-column: span 2; }
-  select, input { width: 100%; min-width: 0; padding: 7px 8px; font: 14px Arial, Helvetica, sans-serif; color: var(--ink); background: #ffffff; border: 1px solid #b9c5d1; border-radius: 2px; }
+  .strip { display: flex; gap: 2px; height: 10px; overflow: hidden; border-radius: 4px; }
+  .strip span { min-width: 2px; }
+  .mix { margin: 8px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 13px; color: var(--soft); }
+  .mix b { color: var(--ink); font-weight: 600; }
+  .key { display: inline-block; width: 10px; height: 10px; margin-right: 5px; border-radius: 2px; forced-color-adjust: none; }
+
+  /* Overview */
+  .callout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 16px 28px; align-items: start; }
+  .callout h2 { margin-bottom: 6px; }
+  .callout p.opening { margin: 0; font: 15px/1.55 var(--serif); }
+  .filterbar { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: end; }
+  .filterbar label { flex: 0 1 190px; }
+  .filterbar .note { flex: 1 1 200px; margin: 0; padding-bottom: 7px; text-align: right; }
+  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .tile { display: flex; flex-direction: column; justify-content: flex-start; }
+  .tile-label { margin: 0; font-size: 13px; color: var(--soft); }
+  .tile-value { margin: 2px 0 0; font-size: 34px; font-weight: 600; line-height: 1.15; }
+  .tile.hero .tile-value { font-size: 50px; }
+  .tile-sub { margin: 2px 0 0; font-size: 12px; color: var(--soft); }
+  .tile .strip { margin-top: 10px; }
+  .dash { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+  .wide-7 { grid-column: span 7; }
+  .wide-6 { grid-column: span 6; }
+  .wide-5 { grid-column: span 5; }
+  .chart-note { margin: 2px 0 10px; font-size: 13px; color: var(--soft); }
+  .legend { display: flex; flex-wrap: wrap; gap: 2px 14px; margin: 0 0 8px; padding: 0; list-style: none; font-size: 12px; color: var(--soft); }
+  .numbers { margin-top: 10px; font-size: 13px; }
+  .numbers summary { color: var(--soft); cursor: pointer; }
+  .numbers table { margin-top: 6px; }
+
+  /* Column charts */
+  .cols { display: grid; grid-template-columns: 30px minmax(0, 1fr); height: 240px; }
+  .ticks { position: relative; margin: 18px 0 24px; }
+  .ticks span { position: absolute; right: 6px; font-size: 11px; line-height: 1; color: var(--soft); transform: translateY(50%); font-variant-numeric: tabular-nums; }
+  .plot { position: relative; display: flex; }
+  .rules { position: absolute; inset: 18px 0 24px; }
+  .rules i { position: absolute; left: 0; right: 0; border-top: 1px solid var(--line); }
+  .rules i:first-child { border-top-color: var(--axis); }
+  .col { position: relative; flex: 1 1 0; min-width: 0; padding: 0; color: inherit; background: transparent; border: 0; border-radius: 4px; cursor: pointer; }
+  .col:hover { background: var(--raised); }
+  .col-area { position: absolute; inset: 18px 0 24px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
+  .col-stack { display: flex; flex-direction: column-reverse; gap: 2px; width: min(24px, 64%); }
+  .col-stack .seg { min-height: 2px; }
+  .col-stack .seg:last-child { border-radius: 4px 4px 0 0; }
+  .peak { font-size: 11px; font-weight: 600; line-height: 1.4; }
+  .x-label { position: absolute; left: 50%; bottom: 3px; font-size: 11px; line-height: 1.4; white-space: nowrap; color: var(--soft); transform: translateX(-50%); }
+  .seg { display: block; forced-color-adjust: none; }
+  .col:hover .seg, .row-bar:hover .seg { filter: brightness(1.12); }
+
+  /* Bar lists */
+  .row-bar { display: grid; grid-template-columns: minmax(0, 150px) minmax(0, 1fr); gap: 10px; align-items: center; width: 100%; padding: 4px 4px; font: 13px/1.3 var(--sans); text-align: left; color: var(--ink); background: transparent; border: 0; border-radius: 4px; }
+  button.row-bar { cursor: pointer; }
+  button.row-bar:hover { background: var(--raised); }
+  .row-line { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .row-stack { display: flex; gap: 2px; height: 14px; }
+  .row-stack .seg { min-width: 2px; }
+  .row-stack .seg:last-child { border-radius: 0 4px 4px 0; }
+  .row-value { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* Tooltip */
+  #tip { position: fixed; z-index: 10; min-width: 150px; max-width: 260px; padding: 8px 10px; font-size: 13px; line-height: 1.4; color: var(--ink); background: var(--surface); border: 1px solid var(--axis); border-radius: 6px; box-shadow: 0 4px 14px rgba(13, 22, 32, .18); pointer-events: none; }
+  .tip-title { margin: 0 0 4px; font-weight: 600; }
+  .tip-row { display: flex; align-items: center; gap: 7px; color: var(--soft); }
+  .tip-row i { flex: 0 0 12px; height: 2px; border-radius: 1px; forced-color-adjust: none; }
+  .tip-row b { min-width: 26px; color: var(--ink); font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* Latest issue */
+  .frame-wrap { max-width: 700px; margin: 0 auto; }
+  iframe { display: block; width: 100%; height: 1800px; border: 0; border-radius: 8px; background: #eef1f5; }
+
+  /* Explore */
+  .search { display: block; margin-bottom: 10px; }
+  .search input { padding: 10px 12px; font-size: 15px; }
+  .filter-box summary { width: fit-content; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--soft); cursor: pointer; }
+  .filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 14px; margin-bottom: 14px; }
+  .tools { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+  .tools .result { flex: 1 1 260px; min-width: 0; }
+  .tools .note { margin: 0 0 4px; }
+  .tools .order { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .tools .order select { width: auto; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .chip { padding: 3px 9px; font: 12px var(--sans); color: var(--ink); background: var(--raised); border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
+  .chip:hover { border-color: var(--field); }
+  #papers { margin-top: 12px; }
   .paper-row { border-top: 1px solid var(--line); }
-  .paper-row > button { display: grid; grid-template-columns: 32px 92px minmax(0, 1fr); gap: 10px; align-items: start; width: 100%; padding: 10px 2px; text-align: left; font: inherit; color: inherit; background: transparent; border: 0; cursor: pointer; }
-  .paper-row > button:hover { background: var(--wash); }
-  .score { font: bold 15px Arial, Helvetica, sans-serif; color: var(--navy); }
-  .tag { display: inline-block; padding: 1px 7px; font: bold 12px Arial, Helvetica, sans-serif; color: #ffffff; }
-  .tag-EM { background: #a65300; }
-  .tag-DM { background: #17527a; }
-  .tag-Transversal { background: #2c6e49; }
-  .title { font-size: 16px; }
-  .sub { display: block; font: 13px Arial, Helvetica, sans-serif; color: var(--soft); }
-  .detail { padding: 2px 2px 16px 42px; font-size: 15px; }
+  .paper-row > button { display: grid; grid-template-columns: 40px minmax(0, 1fr) 14px; gap: 12px; align-items: start; width: 100%; padding: 12px 6px; text-align: left; font: inherit; color: inherit; background: transparent; border: 0; border-radius: 4px; cursor: pointer; }
+  .paper-row > button:hover { background: var(--raised); }
+  .score-value { display: block; font-size: 17px; font-weight: 600; line-height: 1.2; text-align: center; }
+  .meter { display: block; height: 4px; margin-top: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+  .meter span { display: block; height: 100%; background: var(--strong); forced-color-adjust: none; }
+  .title { display: block; font: 16.5px/1.35 var(--serif); }
+  .sub { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 8px; margin-top: 4px; font-size: 13px; color: var(--soft); }
+  .chevron { width: 8px; height: 8px; margin-top: 6px; border-right: 2px solid var(--soft); border-bottom: 2px solid var(--soft); transform: rotate(45deg); }
+  [aria-expanded="true"] .chevron { margin-top: 10px; transform: rotate(-135deg); }
+  .detail { padding: 2px 34px 16px 58px; font: 15px/1.55 var(--serif); }
   .detail p { margin: 0 0 10px; }
   .detail ul { margin: 0 0 10px; padding-left: 20px; }
-  .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 12px; margin: 0 0 10px; font: 13px Arial, Helvetica, sans-serif; }
+  .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 12px; margin: 0 0 10px; font: 13px/1.5 var(--sans); }
   .facts dt { color: var(--soft); }
   .facts dd { margin: 0; overflow-wrap: anywhere; }
-  .more { margin-top: 12px; padding: 8px 14px; font: bold 14px Arial, Helvetica, sans-serif; color: var(--navy); background: #ffffff; border: 1px solid var(--navy); cursor: pointer; }
-  table { width: 100%; border-collapse: collapse; font: 13px Arial, Helvetica, sans-serif; }
+  .more { margin-top: 12px; }
+
+  /* Archive */
+  .issue-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .issue-card { padding: 14px 16px; background: var(--raised); border: 1px solid var(--line); border-radius: 8px; }
+  .issue-card h3 { font: normal 19px/1.3 var(--serif); }
+  .issue-card .note { margin: 0 0 8px; }
+  .groups { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .group { padding: 10px 12px; background: var(--raised); border: 1px solid var(--line); border-radius: 8px; }
+  .group .tile-value { font-size: 22px; }
+  .status { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .status-icon { display: inline-grid; place-items: center; width: 15px; height: 15px; font-size: 10px; font-weight: 700; line-height: 1; color: #ffffff; border-radius: 50%; background: var(--soft); forced-color-adjust: none; }
+  .status-working .status-icon { background: var(--good); }
+  .status-not_covered .status-icon, .status-failed .status-icon { background: var(--bad); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { color: var(--soft); }
-  .wide { overflow-x: auto; }
-  ul.issues { margin: 0 0 20px; padding-left: 20px; font-size: 17px; }
-  footer { max-width: 1000px; margin: 0 auto; padding: 0 18px 32px; font: 13px/1.5 Arial, Helvetica, sans-serif; color: var(--soft); }
+  th { color: var(--soft); font-weight: 600; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  footer { max-width: 1120px; margin: 0 auto; padding: 0 16px 32px; font-size: 13px; color: var(--soft); }
   [hidden] { display: none !important; }
-  button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
   nav button:focus-visible { outline-color: #ffffff; }
-  @media (max-width: 640px) {
+
+  @media (max-width: 860px) {
+    .callout { grid-template-columns: minmax(0, 1fr); }
+    .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .wide-7, .wide-6, .wide-5 { grid-column: span 12; }
+    .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .filters label:nth-child(7) { grid-column: span 2; }
-    .paper-row > button { grid-template-columns: 26px minmax(0, 1fr); }
-    .paper-row .title-cell { grid-column: 1 / -1; }
-    .detail { padding-left: 2px; }
+  }
+  @media (max-width: 640px) {
+    h1 { font-size: 26px; }
+    nav button { padding: 8px 9px; font-size: 13px; }
+    .filterbar label { flex: 1 1 calc(50% - 6px); }
+    .filterbar .note { text-align: left; padding-bottom: 0; }
+    .tile.hero .tile-value { font-size: 44px; }
+    .tile-value { font-size: 28px; }
+    .tile { padding: 12px 14px; }
+    .row-bar { grid-template-columns: minmax(0, 118px) minmax(0, 1fr); }
+    .cols.thin .col:nth-child(odd) .x-label { visibility: hidden; }
+    .paper-row > button { grid-template-columns: 34px minmax(0, 1fr) 12px; gap: 10px; }
+    .detail { padding: 2px 6px 16px; }
     iframe { height: 1500px; }
+    .health thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .health tr { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px 8px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .health td { padding: 0; border: 0; text-align: left; }
+    .health td::before { content: attr(data-label); display: block; font-size: 11px; color: var(--soft); }
+    .health td.source { grid-column: span 2; font-weight: 600; }
+    .health td.state { grid-column: span 2; justify-self: end; }
+    .health td.source::before, .health td.state::before { content: none; }
+    .health td.why { grid-column: 1 / -1; margin-top: 4px; }
+    .health td.why::before { content: none; }
+    .health td:empty { display: none; }
   }
 </style>
 </head>
@@ -73,8 +226,9 @@
 <header>
   <div class="bar">
     <h1>The Research Roundup</h1>
-    <p class="lede">A monthly newsletter of new economics research for a markets research team.</p>
+    <p class="lede">New economics research, read and ranked each month for a markets research team.</p>
     <nav aria-label="Pages">
+      <button type="button" data-page="overview">Overview</button>
       <button type="button" data-page="latest">Latest issue</button>
       <button type="button" data-page="explore">Explore papers</button>
       <button type="button" data-page="archive">Archive</button>
@@ -82,61 +236,116 @@
   </div>
 </header>
 <main>
-  <section id="latest" hidden>
-    <p class="note" id="latestNote"></p>
-    <iframe id="latestFrame" title="The latest newsletter"></iframe>
+  <section id="overview" class="stack-gap" hidden>
+    <p class="note" id="ovNote" role="status">Loading the papers.</p>
+    <div class="card callout" id="callout" hidden></div>
+    <div class="card filterbar" id="ovFilters" hidden>
+      <label>Month<select id="ovMonth"></select></label>
+      <label>Tag<select id="ovTag"></select></label>
+      <label>Source type<select id="ovGroup"></select></label>
+      <button type="button" class="plain" id="ovClear">Clear</button>
+      <p class="note" id="ovCount" role="status"></p>
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <p class="note" id="ovEmpty" hidden>No papers match these filters.</p>
+    <div class="dash" id="charts" hidden>
+      <div class="card wide-7" id="chartWeeks"></div>
+      <div class="card wide-5" id="chartScores"></div>
+      <div class="card wide-6" id="chartTopics"></div>
+      <div class="card wide-6" id="chartSources"></div>
+    </div>
   </section>
 
-  <section id="explore" class="panel" hidden>
-    <h2>Explore papers</h2>
-    <p class="tags"><span class="tag tag-EM">EM</span>mainly about emerging or developing economies. <span class="tag tag-DM">DM</span>mainly about advanced economies. <span class="tag tag-Transversal">Transversal</span>global, many regions, or theory and methods not tied to one group.</p>
-    <div class="filters">
-      <label>Issue<select id="fIssue"></select></label>
-      <label>Tag<select id="fTag"></select></label>
-      <label>Source<select id="fSource"></select></label>
-      <label>Topic<select id="fTopic"></select></label>
-      <label>First seen from<input id="fFrom" type="date"></label>
-      <label>First seen to<input id="fTo" type="date"></label>
-      <label>Order<select id="fOrder"><option value="score">Highest score first</option><option value="newest">Newest first</option></select></label>
-      <label class="two-wide">Search titles, authors, summaries and topics<input id="fSearch" type="search"></label>
+  <section id="latest" hidden>
+    <div class="frame-wrap">
+      <p class="note" id="latestNote"></p>
+      <iframe id="latestFrame" title="The latest newsletter"></iframe>
     </div>
+  </section>
+
+  <section id="explore" class="card" hidden>
+    <h2 id="exploreTitle" tabindex="-1">Explore papers</h2>
+    <p class="tags"><span class="tag tag-EM">EM</span>mainly about emerging or developing economies. <span class="tag tag-DM">DM</span>mainly about advanced economies. <span class="tag tag-Transversal">Transversal</span>global, many regions, or theory and methods not tied to one group.</p>
+    <label class="search">Search titles, authors, summaries and topics<input id="fSearch" type="search"></label>
+    <details class="filter-box" id="filterBox" open>
+      <summary>Filters</summary>
+      <div class="filters">
+        <label>Issue<select id="fIssue"></select></label>
+        <label>Tag<select id="fTag"></select></label>
+        <label>Source type<select id="fGroup"></select></label>
+        <label>Source<select id="fSource"></select></label>
+        <label>Topic<select id="fTopic"></select></label>
+        <label>Score<select id="fScore"></select></label>
+        <label>First seen from<input id="fFrom" type="date"></label>
+        <label>First seen to<input id="fTo" type="date"></label>
+      </div>
+    </details>
     <div class="tools">
-      <p class="note" id="count" role="status"></p>
+      <div class="result">
+        <p class="note" id="count" role="status"></p>
+        <div id="countStrip"></div>
+      </div>
+      <label class="order">Order<select id="fOrder"><option value="score">Highest score first</option><option value="newest">Newest first</option></select></label>
       <button type="button" class="plain" id="clear">Clear filters</button>
       <button type="button" class="plain" id="csv">Download as CSV</button>
     </div>
+    <div class="chips" id="chips"></div>
     <div id="papers"></div>
-    <button type="button" class="more" id="more" hidden>Show more papers</button>
+    <button type="button" class="plain more" id="more" hidden>Show more papers</button>
   </section>
 
-  <section id="archive" class="panel" hidden>
+  <section id="archive" class="card" hidden>
     <h2>Past issues</h2>
-    <ul class="issues" id="issues"></ul>
-    <h2>Source health report</h2>
+    <div class="issue-grid" id="issues"></div>
+    <h2>Source coverage</h2>
     <p class="note" id="healthNote"></p>
-    <div class="wide"><table>
-      <thead><tr><th>Source</th><th>Route</th><th>Status</th><th>Found</th><th>New</th><th>No abstract</th><th>Note</th></tr></thead>
+    <div class="groups" id="groups"></div>
+    <table class="health">
+      <thead><tr><th>Source</th><th>Status</th><th>Route</th><th class="num">Found</th><th class="num">New</th><th class="num">No abstract</th><th>Note</th></tr></thead>
       <tbody id="health"></tbody>
-    </table></div>
+    </table>
   </section>
 </main>
 <footer>
   Every summary is written by AI from a paper's title and abstract only, so check the paper before relying on a result.
   How it works, the full source list and the code are <a href="https://github.com/Ouailabed/research-roundup">on GitHub</a>.
 </footer>
+<div id="tip" aria-hidden="true" hidden></div>
 
 <script>
 (() => {
   'use strict';
   const $ = (id) => document.getElementById(id);
   const PAGE_SIZE = 40;
+  const PAGES = ['overview', 'latest', 'explore', 'archive'];
   const FOCUSES = ['EM', 'DM', 'Transversal'];
+  // Bars always stack in this order, biggest group nearest the baseline, so a colour never changes place.
+  const STACK = ['DM', 'Transversal', 'EM'];
+  const GROUPS = {
+    research_body: 'Research bodies',
+    journal: 'Journals',
+    g10_central_bank: 'G10 central banks',
+    regional_fed: 'Regional Feds',
+    european_central_bank: 'European central banks',
+  };
+  const STATUS = {
+    working: ['Working', '✓'],
+    fallback: ['Fallback route', '→'],
+    not_covered: ['Not covered', '×'],
+    failed: ['Failed', '!'],
+  };
+  const EDITOR_SCORE = 9;
+  const TOP_TOPICS = 10;
+  const TOP_SOURCES = 8;
   // A topic used once or twice only makes the filter longer. Those papers can still be found by search.
   const FEWEST_FOR_A_TOPIC = 3;
-  const FILTERS = ['fIssue', 'fTag', 'fSource', 'fTopic', 'fFrom', 'fTo', 'fOrder', 'fSearch'];
+  const FILTERS = ['fIssue', 'fTag', 'fGroup', 'fSource', 'fTopic', 'fScore', 'fFrom', 'fTo', 'fOrder', 'fSearch'];
+  const CHIP_NAMES = { fSearch: 'Search', fIssue: 'Issue', fTag: 'Tag', fGroup: 'Source type', fSource: 'Source', fTopic: 'Topic', fScore: 'Score', fFrom: 'From', fTo: 'To' };
   const CSV_COLUMNS = ['title', 'authors', 'source', 'published', 'first_seen', 'market_focus', 'tag_reason', 'relevance', 'topics', 'summary', 'url'];
   let data = null;
   let shown = PAGE_SIZE;
+  let uses = {};
+  const groupOf = new Map();
   const open = new Set();
 
   function el(tag, attrs, ...kids) {
@@ -153,24 +362,327 @@
   }
 
   const monthLabel = (month) => new Date(month + '-01T12:00:00Z').toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  const dayLabel = (day) => new Date(day.slice(0, 10) + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  const shortDay = (day) => new Date(day + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  const topicLabel = (topic) => (topic === 'ai' ? 'AI' : topic[0].toUpperCase() + topic.slice(1));
+  const count = (number) => number.toLocaleString('en-GB');
+  const plural = (number, word) => count(number) + ' ' + word + (number === 1 ? '' : 's');
+
+  function addDays(day, days) {
+    const date = new Date(day + 'T12:00:00Z');
+    date.setUTCDate(date.getUTCDate() + days);
+    return date.toISOString().slice(0, 10);
+  }
+
+  function weekStart(day) {
+    const date = new Date(day.slice(0, 10) + 'T12:00:00Z');
+    return addDays(day.slice(0, 10), -((date.getUTCDay() + 6) % 7));
+  }
+
+  function lastDay(month) {
+    const [year, number] = month.split('-').map(Number);
+    return new Date(Date.UTC(year, number, 0)).toISOString().slice(0, 10);
+  }
 
   function options(select, first, values, label) {
     select.replaceChildren(el('option', { value: '', text: first }), ...values.map((value) => el('option', { value, text: label ? label(value) : value })));
   }
 
+  function tagCounts(papers) {
+    const counts = Object.fromEntries(FOCUSES.map((tag) => [tag, 0]));
+    papers.forEach((paper) => { counts[paper.market_focus] += 1; });
+    return counts;
+  }
+
+  const seg = (key, amount, axis) => el('span', { class: 'seg', style: 'background:var(--' + key + ');' + (amount === undefined ? '' : 'flex:' + amount + ' 0 ' + (axis || 0)) });
+
+  function strip(counts) {
+    return el('div', { class: 'strip', 'aria-hidden': 'true' }, STACK.filter((tag) => counts[tag]).map((tag) => seg(tag, counts[tag])));
+  }
+
+  // An issue has only a few papers, so it shows counts: percentages of 8 can round to 101.
+  function tagMix(counts, asCounts) {
+    const total = FOCUSES.reduce((sum, tag) => sum + counts[tag], 0);
+    const value = (tag) => (asCounts ? String(counts[tag]) : Math.round(counts[tag] / (total || 1) * 100) + '%');
+    return [strip(counts), el('ul', { class: 'mix' }, STACK.map((tag) => el('li', {},
+      el('span', { class: 'key', style: 'background:var(--' + tag + ')' }), tag + ' ', el('b', { text: value(tag) }))))];
+  }
+
+  function legend(entries) {
+    return el('ul', { class: 'legend' }, entries.map(([key, label]) => el('li', {}, el('span', { class: 'key', style: 'background:var(--' + key + ')' }), label)));
+  }
+
+  function plainTable(head, rows) {
+    return el('table', {},
+      el('thead', {}, el('tr', {}, head.map((cell, index) => el('th', { class: index ? 'num' : null, text: cell })))),
+      el('tbody', {}, rows.map((row) => el('tr', {}, row.map((cell, index) => el('td', { class: index ? 'num' : null, text: String(cell) }))))));
+  }
+
+  function fillTip(title, rows) {
+    $('tip').replaceChildren(el('p', { class: 'tip-title', text: title }), ...rows.map((row) => el('div', { class: 'tip-row' },
+      el('i', { style: 'background:var(--' + row.key + ')' }), el('b', { text: count(row.value) }), row.label)));
+  }
+
+  function placeTip(x, y) {
+    const tip = $('tip');
+    tip.hidden = false;
+    tip.style.left = Math.max(8, Math.min(x + 14, window.innerWidth - tip.offsetWidth - 8)) + 'px';
+    tip.style.top = (y - tip.offsetHeight - 12 < 8 ? y + 18 : y - tip.offsetHeight - 12) + 'px';
+  }
+
+  function hideTip() { $('tip').hidden = true; }
+
+  function bindTip(node, title, rows) {
+    const mouse = (event) => { if (event.pointerType !== 'touch') { fillTip(title, rows); placeTip(event.clientX, event.clientY); } };
+    node.addEventListener('pointerenter', mouse);
+    node.addEventListener('pointermove', mouse);
+    node.addEventListener('pointerleave', hideTip);
+    node.addEventListener('blur', hideTip);
+    node.addEventListener('focus', () => {
+      if (!node.matches(':focus-visible')) return;
+      const box = node.getBoundingClientRect();
+      fillTip(title, rows);
+      placeTip(box.left + box.width / 2, box.top);
+    });
+  }
+
+  function tagRows(papers) {
+    const counts = tagCounts(papers);
+    return STACK.map((tag) => ({ key: tag, value: counts[tag], label: tag }));
+  }
+
+  function axisScale(most) {
+    const step = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500].find((size) => most / size <= 4) || 1000;
+    const top = Math.max(step, Math.ceil(most / step) * step);
+    const ticks = [];
+    for (let value = 0; value <= top; value += step) ticks.push(value);
+    return { top, ticks };
+  }
+
+  function columnChart(rows, name, thinLabels) {
+    const most = Math.max(1, ...rows.map((row) => row.total));
+    const { top, ticks } = axisScale(most);
+    const at = (value) => 'bottom:' + value / top * 100 + '%';
+    return el('div', { class: thinLabels ? 'cols thin' : 'cols', role: 'group', 'aria-label': name },
+      el('div', { class: 'ticks', 'aria-hidden': 'true' }, ticks.map((value) => el('span', { style: at(value), text: count(value) }))),
+      el('div', { class: 'plot' },
+        el('div', { class: 'rules', 'aria-hidden': 'true' }, ticks.map((value) => el('i', { style: at(value) }))),
+        rows.map((row) => {
+          const parts = row.parts.filter((part) => part.value);
+          const column = el('button', { type: 'button', class: 'col', 'aria-label': row.spoken, onclick: row.open },
+            el('span', { class: 'col-area' },
+              row.total === most ? el('span', { class: 'peak', text: count(row.total) }) : null,
+              el('span', { class: 'col-stack', style: 'height:' + row.total / top * 100 + '%' }, parts.map((part) => seg(part.key, part.value)))),
+            el('span', { class: 'x-label', text: row.label }));
+          bindTip(column, row.title, row.parts);
+          return column;
+        })));
+  }
+
+  function barChart(rows, name) {
+    const most = Math.max(1, ...rows.map((row) => row.total));
+    return el('div', { role: 'group', 'aria-label': name }, rows.map((row) => {
+      const parts = row.parts.filter((part) => part.value);
+      const inner = [
+        el('span', { text: row.label }),
+        el('span', { class: 'row-line' },
+          el('span', { class: 'row-stack', style: 'width:calc((100% - 40px) * ' + row.total / most + ')' }, parts.map((part) => seg(part.key, part.value))),
+          el('span', { class: 'row-value', text: count(row.total) }))];
+      const bar = row.open
+        ? el('button', { type: 'button', class: 'row-bar', 'aria-label': row.spoken, onclick: row.open }, inner)
+        : el('div', { class: 'row-bar' }, inner);
+      bindTip(bar, row.title, row.parts);
+      return bar;
+    }));
+  }
+
+  function fillChart(id, title, note, nodes, numbers) {
+    const card = $(id);
+    const keepOpen = Boolean(card.querySelector('details[open]'));
+    card.replaceChildren(el('h3', { text: title }), el('p', { class: 'chart-note', text: note }), ...nodes,
+      el('details', { class: 'numbers', open: keepOpen ? '' : null }, el('summary', { text: 'Show the numbers' }), numbers));
+  }
+
+  function viewedPapers() {
+    const month = $('ovMonth').value;
+    const tag = $('ovTag').value;
+    const group = $('ovGroup').value;
+    return data.papers.filter((paper) => (
+      (!month || paper.first_seen.startsWith(month))
+      && (!tag || paper.market_focus === tag)
+      && (!group || groupOf.get(paper.source) === group)));
+  }
+
+  // What the overview is showing, as Explore filters, so a click on a chart lands on the same papers.
+  function viewFilters() {
+    const month = $('ovMonth').value;
+    return { fTag: $('ovTag').value, fGroup: $('ovGroup').value, fFrom: month && month + '-01', fTo: month && lastDay(month) };
+  }
+
+  function openExplore(values) {
+    FILTERS.forEach((id) => { $(id).value = id === 'fOrder' ? 'score' : ''; });
+    Object.entries(values).forEach(([id, value]) => { $(id).value = value; });
+    shown = PAGE_SIZE;
+    render();
+    location.hash = 'explore';
+    showPage('explore');
+    window.scrollTo(0, 0);
+    $('exploreTitle').focus({ preventScroll: true });
+  }
+
+  function tile(label, value, sub, kind) {
+    return el('div', { class: 'card tile ' + (kind || '') },
+      el('p', { class: 'tile-label', text: label }), el('p', { class: 'tile-value', text: value }), el('p', { class: 'tile-sub', text: sub }));
+  }
+
+  function renderTiles(papers) {
+    const days = papers.map((paper) => paper.first_seen).sort();
+    const editor = papers.filter((paper) => paper.relevance >= EDITOR_SCORE).length;
+    const chosen = papers.filter((paper) => paper.issues.length).length;
+    $('tiles').replaceChildren(
+      tile('Papers read', count(papers.length), days.length ? dayLabel(days[0]) + ' to ' + dayLabel(days[days.length - 1]) : 'None in this view', 'hero'),
+      tile('Scored 9 or 10', count(editor), 'these normally go to the editor'),
+      tile('Chosen for an issue', count(chosen), '5 to 8 papers each month'),
+      el('div', { class: 'card tile' }, el('p', { class: 'tile-label', text: 'Tag mix' }), tagMix(tagCounts(papers))));
+  }
+
+  function renderWeeks(papers) {
+    const weeks = papers.map((paper) => weekStart(paper.first_seen)).sort();
+    const month = $('ovMonth').value;
+    const rows = [];
+    for (let week = weeks[0]; week <= weeks[weeks.length - 1]; week = addDays(week, 7)) {
+      const start = week;
+      const inWeek = papers.filter((paper) => weekStart(paper.first_seen) === start);
+      const from = month && start < month + '-01' ? month + '-01' : start;
+      const to = month && addDays(start, 6) > lastDay(month) ? lastDay(month) : addDays(start, 6);
+      rows.push({
+        label: shortDay(start),
+        title: 'Week of ' + dayLabel(start),
+        total: inWeek.length,
+        parts: tagRows(inWeek),
+        spoken: 'Week of ' + dayLabel(start) + ': ' + plural(inWeek.length, 'paper') + '. Open these in Explore.',
+        open: () => openExplore({ ...viewFilters(), fFrom: from, fTo: to }),
+      });
+    }
+    const busiest = rows.reduce((best, row) => (row.total > best.total ? row : best));
+    fillChart('chartWeeks', 'Papers by week',
+      'Dated by the source where it gives a date. A date with only a month counts as the 1st, so the weeks holding the 1st run high. Busiest: ' + busiest.label + ', ' + plural(busiest.total, 'paper') + '.',
+      [legend(STACK.map((tag) => [tag, tag])), columnChart(rows, 'Papers by week, split by tag', true)],
+      plainTable(['Week of', ...STACK, 'Total'], rows.map((row) => [row.label, ...row.parts.map((part) => part.value), row.total])));
+  }
+
+  function renderScores(papers) {
+    const rows = [];
+    for (let score = 1; score <= 10; score += 1) {
+      const value = score;
+      const total = papers.filter((paper) => paper.relevance === value).length;
+      const key = value >= EDITOR_SCORE ? 'strong' : 'quiet';
+      rows.push({
+        label: String(value),
+        title: 'Score ' + value,
+        total,
+        parts: [{ key, value: total, label: total === 1 ? 'paper' : 'papers' }],
+        spoken: 'Score ' + value + ': ' + plural(total, 'paper') + '. Open these in Explore.',
+        open: () => openExplore({ ...viewFilters(), fScore: String(value) }),
+      });
+    }
+    fillChart('chartScores', 'Score out of 10',
+      'Papers scoring 9 or 10 normally go to an editor, who reads them together and ranks them. A high score earns a paper a look, not a place.',
+      [legend([['strong', '9 or 10'], ['quiet', 'Below 9']]), columnChart(rows, 'Number of papers at each score')],
+      plainTable(['Score', 'Papers'], rows.map((row) => [row.label, row.total])));
+  }
+
+  function renderTopics(papers) {
+    const tally = {};
+    papers.forEach((paper) => paper.topics.forEach((topic) => { (tally[topic] = tally[topic] || []).push(paper); }));
+    const ranked = Object.keys(tally).sort((a, b) => tally[b].length - tally[a].length || a.localeCompare(b));
+    const rows = ranked.slice(0, TOP_TOPICS).map((topic) => ({
+      label: topicLabel(topic),
+      title: topicLabel(topic),
+      total: tally[topic].length,
+      parts: tagRows(tally[topic]),
+      spoken: topicLabel(topic) + ': ' + plural(tally[topic].length, 'paper') + '. Open these in Explore.',
+      open: uses[topic] >= FEWEST_FOR_A_TOPIC ? () => openExplore({ ...viewFilters(), fTopic: topic }) : null,
+    }));
+    fillChart('chartTopics', 'Top topics', 'A paper can have several topics, so it can appear in more than one bar.',
+      [legend(STACK.map((tag) => [tag, tag])), barChart(rows, 'Most common topics, split by tag')],
+      plainTable(['Topic', ...STACK, 'Total'], rows.map((row) => [row.label, ...row.parts.map((part) => part.value), row.total])));
+  }
+
+  function renderSources(papers) {
+    const tally = {};
+    papers.forEach((paper) => { (tally[paper.source] = tally[paper.source] || []).push(paper); });
+    const ranked = Object.keys(tally).sort((a, b) => tally[b].length - tally[a].length || a.localeCompare(b));
+    const row = (source) => ({
+      label: source,
+      title: source,
+      total: tally[source].length,
+      parts: tagRows(tally[source]),
+      spoken: source + ': ' + plural(tally[source].length, 'paper') + '. Open these in Explore.',
+      open: () => openExplore({ ...viewFilters(), fSource: source }),
+    });
+    const rows = ranked.slice(0, TOP_SOURCES).map(row);
+    const rest = ranked.slice(TOP_SOURCES).flatMap((source) => tally[source]);
+    if (rest.length) {
+      const others = ranked.length - TOP_SOURCES;
+      rows.push({ label: plural(others, 'other source'), title: plural(others, 'other source'), total: rest.length, parts: tagRows(rest), open: null });
+    }
+    const leader = rows[0];
+    fillChart('chartSources', 'Where the papers come from',
+      leader.label + ' gives ' + Math.round(leader.total / papers.length * 100) + '% of these papers.' + ($('ovGroup').value ? '' : ' Working paper series come out far more often than journals.'),
+      [legend(STACK.map((tag) => [tag, tag])), barChart(rows, 'Papers from each source, split by tag')],
+      plainTable(['Source', ...STACK, 'Total'], ranked.map(row).map((one) => [one.label, ...one.parts.map((part) => part.value), one.total])));
+  }
+
+  function renderOverview() {
+    hideTip();
+    const papers = viewedPapers();
+    $('ovCount').textContent = count(papers.length) + ' of ' + plural(data.papers.length, 'paper') + ' in this view';
+    $('ovEmpty').hidden = papers.length > 0;
+    $('charts').hidden = !papers.length;
+    renderTiles(papers);
+    if (!papers.length) return;
+    renderWeeks(papers);
+    renderScores(papers);
+    renderTopics(papers);
+    renderSources(papers);
+  }
+
+  function renderCallout() {
+    const issue = data.issues[0];
+    if (!issue) return;
+    const papers = data.papers.filter((paper) => paper.issues.includes(issue.month));
+    $('callout').hidden = false;
+    $('callout').replaceChildren(
+      el('div', {},
+        el('p', { class: 'kicker', text: 'Latest issue' }),
+        el('h2', { text: monthLabel(issue.month) }),
+        issue.overview ? el('p', { class: 'opening', text: issue.overview }) : null),
+      el('div', {},
+        el('p', { class: 'tile-label', text: plural(papers.length, 'paper') + ' chosen' }),
+        el('div', { style: 'margin-top:6px' }, tagMix(tagCounts(papers), true)),
+        el('div', { class: 'actions' },
+          el('a', { class: 'btn', href: '#latest', text: 'Read the issue' }),
+          el('button', { type: 'button', class: 'plain', text: 'Explore its papers', onclick: () => openExplore({ fIssue: issue.month }) }))));
+  }
+
   function filtered() {
     const issue = $('fIssue').value;
     const tag = $('fTag').value;
+    const group = $('fGroup').value;
     const source = $('fSource').value;
     const topic = $('fTopic').value;
+    const score = $('fScore').value;
     const from = $('fFrom').value;
     const to = $('fTo').value;
     const search = $('fSearch').value.trim().toLowerCase();
     const papers = data.papers.filter((paper) => (
       (!issue || paper.issues.includes(issue))
       && (!tag || paper.market_focus === tag)
+      && (!group || groupOf.get(paper.source) === group)
       && (!source || paper.source === source)
       && (!topic || paper.topics.includes(topic))
+      && (!score || (score === 'top' ? paper.relevance >= EDITOR_SCORE : paper.relevance === Number(score)))
       && (!from || paper.first_seen >= from)
       && (!to || paper.first_seen <= to)
       && (!search || [paper.title, paper.authors, paper.summary, ...paper.topics].join(' ').toLowerCase().includes(search))
@@ -194,7 +706,7 @@
     const facts = [
       ['Source', paper.source],
       ['Published', paper.published || 'Not given by the source'],
-      ['First seen', paper.first_seen],
+      ['First seen', dayLabel(paper.first_seen)],
       ['Score', paper.relevance + ' of 10'],
       ['Topics', paper.topics.join(', ')],
       ['In issues', paper.issues.map(monthLabel).join(', ') || 'None'],
@@ -202,6 +714,7 @@
       ['Analysed by', paper.model],
     ];
     return el('div', { class: 'detail' },
+      paper.authors ? el('p', {}, el('em', { text: paper.authors })) : null,
       el('p', { text: paper.summary }),
       el('p', {}, el('strong', { text: paper.market_focus + ': ' }), paper.tag_reason),
       paper.takeaways.length ? el('ul', {}, paper.takeaways.map((line) => el('li', { text: line }))) : null,
@@ -212,7 +725,9 @@
 
   function paperRow(paper) {
     const isOpen = open.has(paper.id);
-    return el('div', { class: 'paper-row' },
+    const meta = [paper.source, dayLabel(paper.first_seen)];
+    if (paper.issues.length) meta.push('In the ' + monthLabel(paper.issues[0]) + ' issue');
+    return el('article', { class: 'paper-row' },
       el('button', {
         type: 'button',
         'aria-expanded': String(isOpen),
@@ -224,18 +739,48 @@
           [...$('papers').querySelectorAll('button')].find((button) => button.dataset.paper === paper.id).focus();
         },
       },
-      el('span', { class: 'score', text: String(paper.relevance), title: 'Score out of 10' }),
-      el('span', {}, el('span', { class: 'tag tag-' + paper.market_focus, text: paper.market_focus })),
-      el('span', { class: 'title-cell' },
+      el('span', { title: 'Score out of 10' },
+        el('span', { class: 'score-value', text: String(paper.relevance) }),
+        el('span', { class: 'meter', 'aria-hidden': 'true' }, el('span', { style: 'width:' + paper.relevance * 10 + '%' }))),
+      el('span', {},
         el('span', { class: 'title', text: paper.title }),
-        el('span', { class: 'sub', text: paper.source + ', ' + paper.first_seen + (paper.issues.length ? ', in the ' + monthLabel(paper.issues[0]) + ' issue' : '') }))),
+        el('span', { class: 'sub' }, el('span', { class: 'tag tag-' + paper.market_focus, text: paper.market_focus }), el('span', { text: meta.join(' · ') }))),
+      el('span', { class: 'chevron', 'aria-hidden': 'true' })),
       isOpen ? detail(paper) : null);
+  }
+
+  function chipText(id) {
+    const field = $(id);
+    if (field.type === 'date') return dayLabel(field.value);
+    return field.tagName === 'SELECT' ? field.options[field.selectedIndex].text : field.value;
+  }
+
+  function renderChips() {
+    const active = Object.keys(CHIP_NAMES).filter((id) => $(id).value);
+    $('chips').replaceChildren(...active.map((id) => {
+      const text = CHIP_NAMES[id] + ': ' + chipText(id);
+      return el('button', {
+        type: 'button',
+        class: 'chip',
+        'aria-label': 'Remove the filter ' + text,
+        text: text + ' ×',
+        onclick: () => {
+          $(id).value = '';
+          shown = PAGE_SIZE;
+          render();
+          $('clear').focus();
+        },
+      });
+    }));
   }
 
   function render() {
     const papers = filtered();
-    const tags = FOCUSES.map((tag) => papers.filter((paper) => paper.market_focus === tag).length + ' ' + tag).join(', ');
-    $('count').textContent = papers.length + ' of ' + data.papers.length + ' papers (' + tags + '). Click a paper to read more.';
+    const counts = tagCounts(papers);
+    const tags = FOCUSES.map((tag) => counts[tag] + ' ' + tag).join(', ');
+    $('count').textContent = count(papers.length) + ' of ' + plural(data.papers.length, 'paper') + ' (' + tags + '). Click a paper to read more.';
+    $('countStrip').replaceChildren(strip(counts));
+    renderChips();
     $('papers').replaceChildren(...papers.slice(0, shown).map(paperRow));
     $('more').hidden = papers.length <= shown;
   }
@@ -243,37 +788,101 @@
   function fitFrame() {
     // The newsletter is taller on a phone, so the frame takes its height from the page inside it.
     const inside = $('latestFrame').contentDocument;
-    if (inside && inside.body && !$('latest').hidden) $('latestFrame').style.height = inside.documentElement.scrollHeight + 'px';
+    // The page body stretches to fill the frame, so only the newsletter's own table gives its real height.
+    const sheet = inside && inside.querySelector('table');
+    if (sheet && !$('latest').hidden) $('latestFrame').style.height = sheet.offsetHeight + 'px';
+  }
+
+  function loadIssue() {
+    // The frame loads when first shown, because a hidden frame can't measure the page inside it.
+    const issue = data && data.issues[0];
+    if (issue && !$('latest').hidden && !$('latestFrame').getAttribute('src')) $('latestFrame').src = 'issues/' + issue.file;
   }
 
   function showPage(page) {
-    ['latest', 'explore', 'archive'].forEach((id) => { $(id).hidden = id !== page; });
+    hideTip();
+    PAGES.forEach((id) => { $(id).hidden = id !== page; });
     document.querySelectorAll('nav button').forEach((button) => {
       if (button.dataset.page === page) button.setAttribute('aria-current', 'page');
       else button.removeAttribute('aria-current');
     });
+    loadIssue();
     fitFrame();
   }
 
   function currentPage() {
     const page = location.hash.slice(1);
-    return ['latest', 'explore', 'archive'].includes(page) ? page : 'latest';
+    return PAGES.includes(page) ? page : 'overview';
+  }
+
+  function statusLabel(status) {
+    const [label, icon] = STATUS[status] || [status.replace('_', ' '), '!'];
+    return el('span', { class: 'status status-' + status }, el('span', { class: 'status-icon', 'aria-hidden': 'true', text: icon }), label);
+  }
+
+  function renderArchive() {
+    $('issues').replaceChildren(...data.issues.map((issue) => {
+      const papers = data.papers.filter((paper) => paper.issues.includes(issue.month));
+      return el('article', { class: 'issue-card' },
+        el('h3', {}, el('a', { href: 'issues/' + issue.file, text: monthLabel(issue.month) })),
+        el('p', { class: 'note', text: plural(papers.length, 'paper') }),
+        tagMix(tagCounts(papers), true),
+        el('div', { class: 'actions' }, el('button', { type: 'button', class: 'plain', text: 'Explore these papers', onclick: () => openExplore({ fIssue: issue.month }) })));
+    }));
+    const isRead = (row) => row.status === 'working' || row.status === 'fallback';
+    $('healthNote').textContent = data.health.length
+      ? 'From the last run, on ' + dayLabel(data.health[0].run_at) + ': ' + data.health.filter(isRead).length + ' of ' + data.health.length + ' sources read. Found is the number of recent papers checked, and New is how many of those were new. The Route column shows how each source is read. Fallback means its own feed and publisher records such as Crossref did not work, so its papers come through RePEc or EconStor.'
+      : 'No run has been recorded yet.';
+    $('groups').replaceChildren(...Object.entries(GROUPS).map(([key, label]) => {
+      const rows = data.health.filter((row) => row.source_group === key);
+      return el('div', { class: 'group' },
+        el('p', { class: 'tile-label', text: label }),
+        el('p', { class: 'tile-value', text: rows.filter(isRead).length + ' of ' + rows.length }));
+    }));
+    const cell = (label, value, kind) => el('td', { class: kind, 'data-label': label, text: String(value) });
+    $('health').replaceChildren(...data.health.map((row) => el('tr', {},
+      cell('Source', row.source, 'source'),
+      el('td', { class: 'state', 'data-label': 'Status' }, statusLabel(row.status)),
+      cell('Route', row.route, 'route'),
+      cell('Found', row.found, 'num'),
+      cell('New', row.new, 'num'),
+      cell('No abstract', row.missing_abstracts, 'num'),
+      cell('Note', row.note, 'why'))));
   }
 
   function setUp() {
-    const months = data.issues.map((issue) => issue.month);
-    const uses = {};
+    data.health.forEach((row) => groupOf.set(row.source, row.source_group));
+    const issues = data.issues.map((issue) => issue.month);
     data.papers.flatMap((paper) => paper.topics).forEach((topic) => { uses[topic] = (uses[topic] || 0) + 1; });
     const topics = Object.keys(uses).filter((topic) => uses[topic] >= FEWEST_FOR_A_TOPIC).sort((a, b) => a.localeCompare(b));
     const sources = [...new Set(data.papers.map((paper) => paper.source))].sort((a, b) => a.localeCompare(b));
-    options($('fIssue'), 'All papers', months, monthLabel);
+    const months = [...new Set(data.papers.map((paper) => paper.first_seen.slice(0, 7)))].sort().reverse();
+    const scores = ['10', '9', '8', '7', '6', '5', '4', '3', '2', '1'];
+    const groups = Object.keys(GROUPS);
+    options($('ovMonth'), 'All months', months, monthLabel);
+    options($('ovTag'), 'All tags', FOCUSES);
+    options($('ovGroup'), 'All sources', groups, (group) => GROUPS[group]);
+    options($('fIssue'), 'All papers', issues, monthLabel);
     options($('fTag'), 'All tags', FOCUSES);
+    options($('fGroup'), 'All source types', groups, (group) => GROUPS[group]);
     options($('fSource'), 'All sources', sources);
     options($('fTopic'), 'All topics', topics, (topic) => topic + ' (' + uses[topic] + ')');
+    options($('fScore'), 'Any score', ['top', ...scores], (score) => (score === 'top' ? '9 or 10' : score));
+    ['ovMonth', 'ovTag', 'ovGroup'].forEach((id) => $(id).addEventListener('input', renderOverview));
+    $('ovClear').addEventListener('click', () => {
+      ['ovMonth', 'ovTag', 'ovGroup'].forEach((id) => { $(id).value = ''; });
+      renderOverview();
+    });
     FILTERS.forEach((id) => {
       $(id).addEventListener('input', () => { shown = PAGE_SIZE; render(); });
     });
-    $('more').addEventListener('click', () => { shown += PAGE_SIZE; render(); });
+    $('more').addEventListener('click', () => {
+      const firstNew = shown;
+      shown += PAGE_SIZE;
+      render();
+      // The button can hide itself here, so the keyboard moves to the first new paper.
+      $('papers').querySelectorAll('button[data-paper]')[firstNew].focus();
+    });
     $('csv').addEventListener('click', downloadCsv);
     $('clear').addEventListener('click', () => {
       FILTERS.forEach((id) => { $(id).value = id === 'fOrder' ? 'score' : ''; });
@@ -285,32 +894,38 @@
 
     if (data.issues.length) {
       const latest = data.issues[0];
-      $('latestFrame').src = 'issues/' + latest.file;
       $('latestNote').replaceChildren(monthLabel(latest.month) + '. ', el('a', { href: 'issues/' + latest.file, text: 'Open it on its own page' }), '.');
     } else {
       $('latestNote').textContent = 'No issue has been built yet.';
       $('latestFrame').hidden = true;
     }
-    $('issues').replaceChildren(...data.issues.map((issue) => el('li', {}, el('a', { href: 'issues/' + issue.file, text: monthLabel(issue.month) }))));
+    const lastRun = data.health.length ? data.health[0] : null;
     const read = data.health.filter((row) => row.status === 'working' || row.status === 'fallback').length;
-    $('healthNote').textContent = data.health.length
-      ? 'From the last run, on ' + data.health[0].run_at.slice(0, 10) + ': ' + read + ' of ' + data.health.length + ' sources read. Found is the number of recent papers checked, and New is how many of those were new.'
-      : 'No run has been recorded yet.';
-    $('health').replaceChildren(...data.health.map((row) => el('tr', {},
-      [row.source, row.route, row.status.replace('_', ' '), row.found, row.new, row.missing_abstracts, row.note].map((cell) => el('td', { text: String(cell) })))));
+    $('ovNote').textContent = lastRun ? read + ' of ' + data.health.length + ' sources read at the last run, on ' + dayLabel(lastRun.run_at) + '.' : '';
+    $('ovFilters').hidden = false;
+    renderCallout();
+    renderOverview();
+    renderArchive();
     render();
+    loadIssue();
   }
 
   document.querySelectorAll('nav button').forEach((button) => {
     button.addEventListener('click', () => { location.hash = button.dataset.page; });
   });
-  window.addEventListener('hashchange', () => showPage(currentPage()));
+  window.addEventListener('hashchange', () => { showPage(currentPage()); window.scrollTo(0, 0); });
+  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') hideTip(); });
   showPage(currentPage());
+  // On a phone the filters would push the first paper off the screen.
+  if (window.matchMedia('(max-width: 640px)').matches) $('filterBox').open = false;
 
   fetch('data.json')
     .then((response) => response.json())
     .then((loaded) => { data = loaded; setUp(); })
-    .catch(() => { $('latestNote').textContent = 'The data could not be loaded. Reload the page to try again.'; });
+    .catch((error) => {
+      console.error(error);
+      ['ovNote', 'latestNote', 'count', 'healthNote'].forEach((id) => { $(id).textContent = 'The papers could not be shown. Reload the page to try again.'; });
+    });
 })();
 </script>
 </body>

@@ -2,7 +2,7 @@
 
 An automated Python agent that watches economics research and builds a monthly newsletter for a markets research team.
 
-Every week it collects new papers from journals, central banks and research bodies, and uses AI to summarise, score and tag each one as EM, DM or Transversal. Every month it picks 5 to 8 papers and builds a responsive HTML newsletter. A public site shows each issue and lets you explore the papers.
+Every week it collects new papers from journals, central banks and research bodies, and uses AI to summarise, score and tag each one as EM, DM or Transversal. Every month it picks 5 to 8 papers and builds a responsive HTML newsletter. A public site shows each issue, a dashboard of everything read so far, and a searchable list of the papers.
 
 - Live site, with the newsletter, paper explorer and archive: https://ouailabed.github.io/research-roundup/
 - Latest newsletter on its own: https://ouailabed.github.io/research-roundup/issues/2026-10.html

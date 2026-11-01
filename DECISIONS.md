@@ -14,6 +14,9 @@ One line for every choice: what we chose and why.
 - An issue is never chosen from part of a month: it waits until the month's papers are scored. It allows 5 left over, because a paper can keep failing the checks, and that shouldn't hold up an issue for ever.
 - Any past month with no finished issue gets built by whichever job comes next. A month needs both a saved list and a page, so a run that stopped halfway is finished later.
 - The prompt holds the IMF's full list of 43 advanced economies, from Table B of the April 2026 World Economic Outlook, not examples. With examples, the model called Korea emerging and Chile advanced, and tagged Italy EM. The list changes over time: Bulgaria joined when it took the euro in 2026.
+- The public site opens on an Overview page with charts drawn in plain HTML and CSS, so it loads nothing from another site and has no library to break. Every chart has a table behind Show the numbers, and clicking a bar opens those papers in Explore.
+- Papers are charted by week, because two months of data would make a chart of two bars.
+- The tag colours changed on 1 November 2026. The old blue and green were too close to tell apart when checked with a colour script, even for full colour vision. The new three pass in light and dark, and for colour blindness, and white text stays readable on them, so the site and the newsletter match.
 - A national programme or dataset names its country, so Medicare or SIPP means the US. A paper's publisher doesn't, because a Fed working paper can be about anywhere.
 - A second look runs when a tag clashes with the places a paper names. The model decides, not the code, because the check can be wrong: "American Indians" reads as India.
 - `python -m src.main check` compares each summary's numbers with its abstract. It can't tell rounding from invention, so it lists them for a person. Of 604 summaries it flagged 6, and all 6 were rounding or simple sums.

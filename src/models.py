@@ -26,7 +26,8 @@ class Paper:
 
 
 def no_em_dash(text):
-    return text.replace(" \u2014 ", ", ").replace("\u2014", ", ")
+    # The models often write a non-breaking hyphen, which a search for long-term can't find.
+    return text.replace(" \u2014 ", ", ").replace("\u2014", ", ").replace("\u2010", "-").replace("\u2011", "-")
 
 
 def clean_text(text):

@@ -11,6 +11,7 @@
 - A second AI tagged 20 papers without seeing the first AI's tags, and they agreed on all 20. This is a consistency check, not a human accuracy figure.
 - Live on 1 November 2026: the repo is public, GitHub Pages is on, and the Groq key is in GitHub Secrets.
 - Improved on 1 November 2026: 56 sources (55 work, 1 not covered), full NBER abstracts, cleaner text, JPE abstracts from RePEc, an editor step and an opening note for each issue, a warning for cut abstracts, a self-restarting catch-up job, a better site and newsletter, 111 tests.
+- Redesigned on 1 November 2026: an Overview dashboard with filters and charts, cleaner Explore and Archive pages, dark mode, and new tag colours on the site and the newsletter. 144 tests.
 
 ## Current step
 All 604 papers are scored. Both months are chosen by the editor step, and the write-ups are being done. The catch-up job restarts itself every 2 hours until both issues are built.

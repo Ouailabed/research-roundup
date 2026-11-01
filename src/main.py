@@ -1,6 +1,7 @@
 import argparse
 
 from src.analyse import analyse_all
+from src.check import check_all
 from src.collect import backfill, collect_all, collect_is_due
 from src.db import connect, latest_health
 from src.health import markdown_table
@@ -21,6 +22,7 @@ def main():
     commands.add_parser("run", help="collect, analyse, build-missing and publish")
     commands.add_parser("catch-up", help="analyse, build-missing and publish, and collect only if a week has passed")
     commands.add_parser("left", help="print how many papers and past issues are still waiting")
+    commands.add_parser("check", help="check the AI's tags and numbers against the text it was given")
     older = commands.add_parser("backfill", help="load older papers, once")
     older.add_argument("--since", required=True, help="for example 2026-09-01")
     commands.add_parser("health", help="print the last source report as Markdown")
@@ -50,6 +52,8 @@ def main():
         publish_site()
     elif arguments.command == "left":
         print(work_left())
+    elif arguments.command == "check":
+        check_all()
     elif arguments.command == "backfill":
         backfill(arguments.since)
     elif arguments.command == "health":

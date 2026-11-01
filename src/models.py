@@ -25,6 +25,10 @@ class Paper:
     fetched_at: str
 
 
+def no_em_dash(text):
+    return text.replace(" — ", ", ").replace("—", ", ")
+
+
 def clean_text(text):
     # Some sources escape their tags, so unescape first or the tags slip through.
     without_tags = re.sub(r"</?[a-zA-Z][^>]*>", " ", unescape(text or ""))

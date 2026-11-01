@@ -5,6 +5,7 @@ import shutil
 
 from src.config import ROOT
 from src.db import connect, latest_health
+from src.models import no_em_dash
 
 SITE = ROOT / "site"
 SAME_TOPIC = {
@@ -58,7 +59,9 @@ def site_data(conn):
     papers = paper_rows(conn)
     for paper in papers:
         paper["topics"] = clean_topics(json.loads(paper["topics"]))
-        paper["takeaways"] = json.loads(paper["takeaways"])
+        paper["takeaways"] = [no_em_dash(line) for line in json.loads(paper["takeaways"])]
+        for field in ("title", "summary", "tag_reason", "why_it_matters"):
+            paper[field] = no_em_dash(paper[field])
         paper["issues"] = months.get(paper["id"], [])
     built = sorted((SITE / "issues").glob("*.html"), reverse=True)
     return {

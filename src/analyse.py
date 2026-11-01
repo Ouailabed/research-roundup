@@ -6,18 +6,29 @@ from groq import BadRequestError, RateLimitError
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from src.ai import groq_client, have_key, load_settings
+from src.check import tag_conflict
 from src.db import connect, papers_to_analyse, save_analysis
 
 LONGEST_ABSTRACT = 2500
+# Table B of the IMF's World Economic Outlook, April 2026. It changes: Bulgaria joined when it took the euro.
+ADVANCED_NOTE = (
+    "Andorra", "Australia", "Austria", "Belgium", "Bulgaria", "Canada", "Croatia", "Cyprus", "the Czech Republic", "Denmark", "Estonia",
+    "Finland", "France", "Germany", "Greece", "Hong Kong", "Iceland", "Ireland", "Israel", "Italy", "Japan", "Korea", "Latvia",
+    "Liechtenstein", "Lithuania", "Luxembourg", "Macao", "Malta", "the Netherlands", "New Zealand", "Norway", "Portugal", "Puerto Rico",
+    "San Marino", "Singapore", "the Slovak Republic", "Slovenia", "Spain", "Sweden", "Switzerland", "Taiwan", "the United Kingdom",
+    "the United States",
+)
 
-RULES = """You help a markets research team at an investment bank find useful economics papers.
+RULES = f"""You help a markets research team at an investment bank find useful economics papers.
 
 Use only the title, abstract and metadata you are given. Never add findings, numbers, names or places that are not there. If the abstract does not say something, leave it out.
 
-Choose market_focus with these rules. Advanced economies are the ones on the IMF's advanced economies list, for example the United States, the euro area, the United Kingdom, Japan, Canada, Australia, Switzerland, Sweden and Norway. Every other country counts as emerging.
+Choose market_focus with these rules. Advanced economies are exactly the ones on the IMF's list of April 2026: {", ".join(ADVANCED_NOTE)}. The euro area counts as advanced. Every other country counts as emerging, including Chile, China, Hungary, Mexico, Poland and Romania.
 - DM: mainly about advanced economies.
 - EM: mainly about emerging or developing economies.
 - Transversal: global, many regions, or theory and methods not tied to one group. If the abstract names no country or region, use Transversal.
+
+A national programme, dataset or institution names its country, for example Medicare, SIPP or the FOMC. The paper's publisher does not: a Federal Reserve working paper isn't about the United States unless its abstract says so.
 
 tag_reason is one short sentence saying why the tag fits. It must name the country, region or method in the abstract that decided it, for example "The paper studies firms in India, an emerging economy."
 
@@ -126,7 +137,14 @@ def checked_answer(client, model, rules, text, shape, name):
 
 
 def analyse_paper(client, model, paper, shape):
-    return checked_answer(client, model, RULES, paper_text(paper), shape, paper["id"])
+    text = paper_text(paper)
+    result = checked_answer(client, model, RULES, text, shape, paper["id"])
+    conflict = result and tag_conflict(result.market_focus, f"{paper['title']} {paper['abstract']}")
+    if not conflict:
+        return result
+    # A model can misplace a country, so it looks again. Its second answer stands, because this check can be wrong too.
+    second_look = f"{text}\n\nYour first tag was {result.market_focus}, but {conflict}. Check it against the list."
+    return checked_answer(client, model, RULES, second_look, shape, paper["id"]) or result
 
 
 def analyse_all(limit=None):

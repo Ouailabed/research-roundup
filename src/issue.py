@@ -26,6 +26,7 @@ from src.db import (
     saved_issue,
     saved_overview,
 )
+from src.models import no_em_dash
 
 MIN_PAPERS = 5
 MAX_PAPERS = 8
@@ -169,10 +170,6 @@ def date_label(published):
     if len(published) == 7:
         return month_label(published)
     return published
-
-
-def no_em_dash(text):
-    return text.replace(" \u2014 ", ", ").replace("\u2014", ", ")
 
 
 def write_up(conn, paper_ids, model):

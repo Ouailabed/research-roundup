@@ -58,6 +58,7 @@
   footer { max-width: 1000px; margin: 0 auto; padding: 0 18px 32px; font: 13px/1.5 Arial, Helvetica, sans-serif; color: var(--soft); }
   [hidden] { display: none !important; }
   button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  nav button:focus-visible { outline-color: #ffffff; }
   @media (max-width: 640px) {
     .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .filters label:nth-child(7) { grid-column: span 2; }
@@ -215,7 +216,13 @@
       el('button', {
         type: 'button',
         'aria-expanded': String(isOpen),
-        onclick: () => { if (isOpen) open.delete(paper.id); else open.add(paper.id); render(); },
+        'data-paper': paper.id,
+        onclick: () => {
+          if (isOpen) open.delete(paper.id); else open.add(paper.id);
+          render();
+          // The list was rebuilt, so put the keyboard back on the same paper.
+          [...$('papers').querySelectorAll('button')].find((button) => button.dataset.paper === paper.id).focus();
+        },
       },
       el('span', { class: 'score', text: String(paper.relevance), title: 'Score out of 10' }),
       el('span', {}, el('span', { class: 'tag tag-' + paper.market_focus, text: paper.market_focus })),

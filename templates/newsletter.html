@@ -76,7 +76,7 @@
         <tr>
           <td class="paper" id="paper-{{ loop.index }}">
             <span class="tag tag-{{ paper.market_focus }}">{{ paper.market_focus }}</span>
-            <h2 class="title"><a href="{{ paper.url }}">{{ paper.title }}</a></h2>
+            <h2 class="title"><a href="{{ paper.url }}" target="_blank" rel="noopener">{{ paper.title }}</a></h2>
             <p class="meta">{{ paper.authors }}<br>{{ paper.source }}{% if paper.published_label %}, {{ paper.published_label }}{% endif %}</p>
             <p class="summary">{{ paper.summary }}</p>
             <p class="label">Key takeaways</p>
@@ -87,7 +87,7 @@
             </ul>
             <p class="matters"><strong>Why it matters:</strong> {{ paper.why_it_matters }}</p>
             <p class="reason">Tagged {{ paper.market_focus }}: {{ paper.tag_reason }}</p>
-            <p class="read"><a href="{{ paper.url }}">Read the paper</a></p>
+            <p class="read"><a href="{{ paper.url }}" target="_blank" rel="noopener">Read the paper</a></p>
           </td>
         </tr>
         {% endfor %}
@@ -96,7 +96,7 @@
             <p><strong>How papers are chosen.</strong> {{ selection_note }}</p>
             <p><strong>Sources.</strong> This issue drew on {{ source_count }} sources: the five leading economics journals, G10 and European central banks, the 12 regional Federal Reserve banks, NBER, BPEA, the IMF and the BIS.</p>
             <p>Summaries are written by AI from each paper's title and abstract only. Always check the paper itself before relying on a result.</p>
-            <p><a href="{{ site_url }}">Read past issues and explore every paper</a></p>
+            <p><a href="{{ site_url }}" target="_blank" rel="noopener">Read past issues and explore every paper</a></p>
           </td>
         </tr>
       </table>

@@ -78,17 +78,22 @@ def latest_issue_page():
     show_issue(files[0])
 
 
+def plain(text):
+    # Streamlit reads text between two dollar signs as maths, and abstracts often name two amounts.
+    return text.replace("$", r"\$")
+
+
 def show_paper(paper):
-    st.subheader(paper["title"])
-    st.write(paper["authors"])
-    st.markdown(f"**{paper['market_focus']}**: {paper['tag_reason']}")
-    st.write(paper["summary"])
+    st.subheader(plain(paper["title"]))
+    st.write(plain(paper["authors"]))
+    st.markdown(f"**{paper['market_focus']}**: {plain(paper['tag_reason'])}")
+    st.write(plain(paper["summary"]))
     if paper["takeaways"]:
         st.markdown("**Key takeaways**")
         for takeaway in paper["takeaways"]:
-            st.markdown(f"- {takeaway}")
+            st.markdown(f"- {plain(takeaway)}")
     if paper["why_it_matters"]:
-        st.markdown(f"**Why it matters:** {paper['why_it_matters']}")
+        st.markdown(f"**Why it matters:** {plain(paper['why_it_matters'])}")
     facts = {
         "Source": paper["source"],
         "Published": paper["published"] or "Not given by the source",
@@ -102,7 +107,7 @@ def show_paper(paper):
     st.table(pd.Series(facts, name="Value"))
     st.link_button("Open the paper", paper["url"])
     with st.expander("Abstract from the source"):
-        st.write(paper["abstract"])
+        st.write(plain(paper["abstract"]))
 
 
 def explore_page():

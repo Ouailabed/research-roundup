@@ -188,17 +188,41 @@ def test_a_few_stuck_papers_do_not_hold_up_an_issue(month_of_papers):
     assert len(db.saved_issue(month_of_papers, "2026-10")) == 8
 
 
+WRITTEN = Analysis(summary="One.", market_focus="DM", tag_reason="names Japan", relevance=7, topics=["rates"], takeaways=["a", "b", "c"], why_it_matters="It matters.")
+
+
+def finish(conn, month, paper_id):
+    """Saves everything a finished month has."""
+    db.save_issue(conn, month, [paper_id])
+    db.save_writeup(conn, paper_id, "model", WRITTEN)
+    db.save_overview(conn, month, "model", "A note.")
+    issue.ISSUE_FOLDER.mkdir(exist_ok=True)
+    (issue.ISSUE_FOLDER / f"{month}.html").write_text("done")
+
+
 def test_a_finished_month_is_not_built_again(month_of_papers, monkeypatch):
     built = []
     monkeypatch.setattr(issue, "build_issue", built.append)
     monkeypatch.setattr(issue, "last_full_month", lambda: "2026-10")
-    db.save_issue(month_of_papers, "2026-09", ["p0"])
+    finish(month_of_papers, "2026-09", "p0")
     db.save_issue(month_of_papers, "2026-10", ["p1"])
-    issue.ISSUE_FOLDER.mkdir()
-    (issue.ISSUE_FOLDER / "2026-09.html").write_text("done")
     issue.build_missing_issues()
-    # September is finished. October has a list but no page, because its run stopped halfway.
+    # September is finished. October has a list but nothing else, because its run stopped halfway.
     assert built == ["2026-10"]
+
+
+def test_a_month_chosen_again_is_not_finished_by_its_old_page(month_of_papers):
+    finish(month_of_papers, "2026-10", "p0")
+    assert issue.is_finished(month_of_papers, "2026-10")
+    db.clear_issue(month_of_papers, "2026-10")
+    db.save_issue(month_of_papers, "2026-10", ["p1"])
+    assert not issue.is_finished(month_of_papers, "2026-10")
+
+
+def test_a_month_waiting_for_its_opening_note_is_not_finished(month_of_papers):
+    finish(month_of_papers, "2026-10", "p0")
+    month_of_papers.execute("DELETE FROM overviews")
+    assert not issue.is_finished(month_of_papers, "2026-10")
 
 
 def test_a_month_with_a_page_but_no_list_is_chosen_again(month_of_papers, monkeypatch):
@@ -254,9 +278,7 @@ def test_work_left_counts_papers_and_unfinished_issues(month_of_papers, monkeypa
     monkeypatch.setattr(issue, "last_full_month", lambda: "2026-10")
     monkeypatch.setattr(issue, "load_settings", lambda: {"analyse_from": "2026-09-01"})
     db.save_papers(month_of_papers, [make_paper("new")])
-    issue.ISSUE_FOLDER.mkdir()
-    db.save_issue(month_of_papers, "2026-10", ["p0"])
-    (issue.ISSUE_FOLDER / "2026-10.html").write_text("done")
+    finish(month_of_papers, "2026-10", "p0")
     # One paper to score, plus September, which has no issue yet.
     assert issue.work_left() == 2
 
@@ -264,9 +286,7 @@ def test_work_left_counts_papers_and_unfinished_issues(month_of_papers, monkeypa
 def test_no_work_left_means_zero(month_of_papers, monkeypatch):
     monkeypatch.setattr(issue, "last_full_month", lambda: "2026-10")
     monkeypatch.setattr(issue, "load_settings", lambda: {"analyse_from": "2026-10-01"})
-    issue.ISSUE_FOLDER.mkdir()
-    db.save_issue(month_of_papers, "2026-10", ["p0"])
-    (issue.ISSUE_FOLDER / "2026-10.html").write_text("done")
+    finish(month_of_papers, "2026-10", "p0")
     assert issue.work_left() == 0
 
 

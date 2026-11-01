@@ -295,8 +295,14 @@ def months_since(first, last):
 
 
 def is_finished(conn, month):
-    # A run that stopped halfway has a list but no page yet.
-    return bool(saved_issue(conn, month)) and (ISSUE_FOLDER / f"{month}.html").exists()
+    # A page alone proves nothing, because a month chosen again still has its old page until the new one is built.
+    chosen = saved_issue(conn, month)
+    return (
+        bool(chosen)
+        and all(has_writeup(conn, paper_id) for paper_id in chosen)
+        and bool(saved_overview(conn, month))
+        and (ISSUE_FOLDER / f"{month}.html").exists()
+    )
 
 
 def build_missing_issues():

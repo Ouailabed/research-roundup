@@ -28,6 +28,8 @@ from src.db import (
 MIN_PAPERS = 5
 MAX_PAPERS = 8
 MAX_PER_SOURCE = 2
+# A paper can keep failing the checks, and that shouldn't hold up an issue for ever.
+MOST_LEFT_UNSCORED = 5
 FOCUSES = ("EM", "DM", "Transversal")
 # Scores bunch at 9, so the editor reads everything from here up.
 EDITOR_SCORE = 9
@@ -245,6 +247,11 @@ def build_issue(month=None):
     conn = connect()
     chosen = saved_issue(conn, month)
     if not chosen:
+        left = count_unscored(conn, month)
+        if left > MOST_LEFT_UNSCORED:
+            print(f"{month}: {left} papers still to score, so its issue waits.")
+            conn.close()
+            return None
         try:
             client = groq_client() if have_key() else None
             chosen = choose_papers(editor_order(issue_candidates(conn, month), models["strong"], client))
@@ -281,16 +288,12 @@ def months_since(first, last):
 
 
 def build_missing_issues():
-    """Builds any past month that has no issue yet, once all of its papers are scored."""
+    """Builds any past month with no finished issue. A run that stopped halfway has a list but no page yet."""
     for month in months_since(load_settings()["analyse_from"], last_full_month()):
-        if (ISSUE_FOLDER / f"{month}.html").exists():
-            continue
         conn = connect()
-        left = count_unscored(conn, month)
+        chosen = saved_issue(conn, month)
         conn.close()
-        if left:
-            print(f"{month}: {left} papers still to score, so its issue waits.")
-        else:
+        if not chosen or not (ISSUE_FOLDER / f"{month}.html").exists():
             build_issue(month)
 
 

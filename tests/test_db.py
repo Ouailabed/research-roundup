@@ -5,7 +5,7 @@ from src.analyse import Score
 from src.models import Paper
 
 
-def make_paper(paper_id, abstract="An abstract.", first_seen="2026-10-05"):
+def make_paper(paper_id, abstract="An abstract.", first_seen="2026-10-05", source="NBER"):
     return Paper(
         id=paper_id,
         title=f"Paper {paper_id}",
@@ -13,7 +13,7 @@ def make_paper(paper_id, abstract="An abstract.", first_seen="2026-10-05"):
         abstract=abstract,
         url=f"https://example.org/{paper_id}",
         doi="",
-        source="NBER",
+        source=source,
         group="research_body",
         published="",
         first_seen=first_seen,

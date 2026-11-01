@@ -2,8 +2,11 @@ import json
 from datetime import date
 from types import SimpleNamespace
 
+import pytest
+
 from src import db, issue
 from src.analyse import Overview
+from tests.test_db import RESULT, make_paper
 from src.issue import choose_papers, date_label, editor_order, issue_context, last_full_month, months_since, no_em_dash
 
 ROWS = [
@@ -123,6 +126,57 @@ def test_a_quiet_month_needs_no_editor():
     editor = Editor(last_first)
     assert editor_order(rows, "model", editor) == rows
     assert editor.calls == []
+
+
+@pytest.fixture
+def month_of_papers(monkeypatch, tmp_path):
+    """A database with no key, holding 8 scored papers from 8 sources in October."""
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "test.db")
+    monkeypatch.setattr(issue, "have_key", lambda: False)
+    monkeypatch.setattr(issue, "ISSUE_FOLDER", tmp_path / "issues")
+    conn = db.connect()
+    papers = [make_paper(f"p{number}", source=f"Source {number}") for number in range(8)]
+    db.save_papers(conn, papers)
+    for paper in papers:
+        db.save_analysis(conn, paper.id, "cheap", RESULT)
+    yield conn
+    conn.close()
+
+
+def test_an_issue_waits_while_many_papers_are_unscored(month_of_papers, capsys):
+    db.save_papers(month_of_papers, [make_paper(f"new{number}") for number in range(6)])
+    assert issue.build_issue("2026-10") is None
+    assert db.saved_issue(month_of_papers, "2026-10") == []
+    assert "6 papers still to score" in capsys.readouterr().out
+
+
+def test_a_few_stuck_papers_do_not_hold_up_an_issue(month_of_papers):
+    db.save_papers(month_of_papers, [make_paper(f"new{number}") for number in range(5)])
+    issue.build_issue("2026-10")
+    assert len(db.saved_issue(month_of_papers, "2026-10")) == 8
+
+
+def test_a_finished_month_is_not_built_again(month_of_papers, monkeypatch):
+    built = []
+    monkeypatch.setattr(issue, "build_issue", built.append)
+    monkeypatch.setattr(issue, "last_full_month", lambda: "2026-10")
+    db.save_issue(month_of_papers, "2026-09", ["p0"])
+    db.save_issue(month_of_papers, "2026-10", ["p1"])
+    issue.ISSUE_FOLDER.mkdir()
+    (issue.ISSUE_FOLDER / "2026-09.html").write_text("done")
+    issue.build_missing_issues()
+    # September is finished. October has a list but no page, because its run stopped halfway.
+    assert built == ["2026-10"]
+
+
+def test_a_month_with_a_page_but_no_list_is_chosen_again(month_of_papers, monkeypatch):
+    built = []
+    monkeypatch.setattr(issue, "build_issue", built.append)
+    monkeypatch.setattr(issue, "last_full_month", lambda: "2026-09")
+    issue.ISSUE_FOLDER.mkdir()
+    (issue.ISSUE_FOLDER / "2026-09.html").write_text("an older version")
+    issue.build_missing_issues()
+    assert built == ["2026-09"]
 
 
 def test_an_opening_note_is_written_once_and_saved(monkeypatch, tmp_path):

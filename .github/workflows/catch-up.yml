@@ -1,0 +1,38 @@
+name: Catch up
+
+# A run that hits Groq's daily limit stops and carries on later. This job is that later,
+# so the rest doesn't wait a week. With nothing left to do, it changes nothing.
+on:
+  schedule:
+    - cron: "30 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# The weekly and monthly jobs both write the database, which git can't merge, so they take turns.
+concurrency:
+  group: data-writes
+  cancel-in-progress: false
+
+jobs:
+  catch-up:
+    runs-on: ubuntu-latest
+    env:
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m src.main catch-up
+      - name: Save the results
+        run: |
+          git config user.name "research-roundup-agent"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data site
+          git diff --cached --quiet || git commit -m "Catch up: more papers scored"
+          git pull --rebase
+          git push

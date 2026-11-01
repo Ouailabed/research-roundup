@@ -6,7 +6,7 @@ on:
     paths: ["site/**"]
   # A push made by another workflow doesn't start this one, so those runs start it here.
   workflow_run:
-    workflows: ["Weekly run", "Monthly issue"]
+    workflows: ["Weekly run", "Monthly issue", "Catch up"]
     types: [completed]
   workflow_dispatch:
 

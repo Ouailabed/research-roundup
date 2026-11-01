@@ -19,6 +19,7 @@ def main():
     commands.add_parser("build-missing", help="build any past month that has no issue yet")
     commands.add_parser("publish", help="write the public site from the saved data")
     commands.add_parser("run", help="collect, analyse, build-missing and publish")
+    commands.add_parser("catch-up", help="analyse, build-missing and publish, with no collecting")
     older = commands.add_parser("backfill", help="load older papers, once")
     older.add_argument("--since", required=True, help="for example 2026-09-01")
     commands.add_parser("health", help="print the last source report as Markdown")
@@ -37,6 +38,10 @@ def main():
         publish_site()
     elif arguments.command == "run":
         collect_all()
+        analyse_all()
+        build_missing_issues()
+        publish_site()
+    elif arguments.command == "catch-up":
         analyse_all()
         build_missing_issues()
         publish_site()

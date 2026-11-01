@@ -15,17 +15,18 @@ Every week it collects new papers from journals, central banks and research bodi
 ## How it works
 
 ```
-Feeds and APIs (44 sources)
+Feeds and APIs (56 sources)
       |
    collect       saves new papers to SQLite, no duplicates
       |
    analyse       cheap AI model: summary, tag and score for each paper
       |
- build-issue     picks 5 to 8 papers, stronger model writes them up, builds the HTML
+ build-issue     stronger model ranks the top papers, rules pick 5 to 8, it writes them up, builds the HTML
       |
    publish       writes the public site: latest issue, paper explorer and archive
 
 GitHub Actions runs everything every Monday and builds the new issue on the 1st of each month.
+A small job every 6 hours picks up anything a run left behind at Groq's daily limit.
 ```
 
 | Folder | What is in it |
@@ -40,14 +41,14 @@ GitHub Actions runs everything every Monday and builds the new issue on the 1st 
 
 ## Sources
 
-44 source entries cover the five journals, NBER, BPEA, the IMF, the BIS, all G10 central banks, the ECB, the 12 regional Feds and 8 other European central banks. 43 work and 1 is not covered.
+56 source entries cover the five journals, NBER, BPEA, the IMF, the BIS, all G10 central banks, the ECB, the 12 regional Feds and 20 other European central banks. 55 work and 1 is not covered.
 
 | Source | Route | Status | Papers with no abstract |
 |---|---|---|---|
 | NBER | Own feed, dates from Crossref | Working | 0 |
 | IMF | Crossref | Working | 0 |
 | BIS | Own feed | Working | 0 |
-| BPEA | Crossref | Working | 21 |
+| BPEA | Crossref | Working | 0 |
 | Federal Reserve Board | Crossref | Working | 0 |
 | Bank of England | RePEc IDEAS | Fallback | 0 |
 | European Central Bank | RePEc IDEAS | Fallback | 0 |
@@ -79,23 +80,35 @@ GitHub Actions runs everything every Monday and builds the new issue on the 1st 
 | Banco de Portugal | RePEc IDEAS | Fallback | 0 |
 | Bank of Finland | RePEc IDEAS | Fallback | 0 |
 | Central Bank of Ireland | RePEc IDEAS | Fallback | 0 |
-| Oesterreichische Nationalbank | RePEc IDEAS | Fallback | 0 |
+| Oesterreichische Nationalbank | RePEc IDEAS | Fallback | 1 |
 | Norges Bank | Own feed | Working | 0 |
 | Danmarks Nationalbank | EconStor feed | Fallback | 0 |
 | Narodowy Bank Polski | RePEc IDEAS | Fallback | 0 |
-| American Economic Review | OpenAlex | Working | 9 |
-| Econometrica | Crossref | Working | 10 |
-| Journal of Political Economy | OpenAlex | Working | 38 |
-| Quarterly Journal of Economics | OpenAlex | Working | 1 |
+| Czech National Bank | RePEc IDEAS | Fallback | 0 |
+| Magyar Nemzeti Bank | RePEc IDEAS | Fallback | 0 |
+| Bank of Greece | RePEc IDEAS | Fallback | 0 |
+| Latvijas Banka | RePEc IDEAS | Fallback | 0 |
+| Bank of Lithuania | RePEc IDEAS | Fallback | 0 |
+| Eesti Pank | RePEc IDEAS | Fallback | 2 |
+| National Bank of Slovakia | RePEc IDEAS | Fallback | 0 |
+| Croatian National Bank | RePEc IDEAS | Fallback | 0 |
+| Central Bank of Iceland | RePEc IDEAS | Fallback | 0 |
+| Banque centrale du Luxembourg | RePEc IDEAS | Fallback | 0 |
+| Central Bank of Cyprus | RePEc IDEAS | Fallback | 0 |
+| National Bank of Ukraine | RePEc IDEAS | Fallback | 0 |
+| American Economic Review | OpenAlex | Working | 3 |
+| Econometrica | Crossref | Working | 3 |
+| Journal of Political Economy | OpenAlex, abstracts from RePEc IDEAS | Working | 21 |
+| Quarterly Journal of Economics | OpenAlex | Working | 0 |
 | Review of Economic Studies | OpenAlex | Working | 0 |
 
 **Working** means the publisher's own feed or an official registry (Crossref, DataCite, OpenAlex).
 
 **Fallback** means RePEc IDEAS or EconStor, open catalogues that give the same fields for each series. These are used when a bank's own feed has no abstracts or authors, or when Crossref has the DOIs but no abstracts. Each entry in `config/sources.yaml` has a note saying why.
 
-**Not covered:** the Reserve Bank of New Zealand. Its site answered 403 to a script, RePEc stops in 2024, and the agent never disguises itself as a browser.
+**Not covered:** the Reserve Bank of New Zealand. Its site answered 403 to a script, RePEc stops in 2024, and the agent never disguises itself as a browser. A few smaller European central banks are also missing: Malta's RePEc series stops in 2023, and no RePEc series turned up for Slovenia, Bulgaria, Romania or Serbia.
 
-The rules for every source: feeds and official APIs first, respect `robots.txt`, about 1 request per second, a clear User-Agent, and no attempts to get around a paywall. Papers with no abstract are kept in the database but left out of the analysis for that cycle, which mainly affects the Journal of Political Economy.
+The rules for every source: feeds and official APIs first, respect `robots.txt`, about 1 request per second, a clear User-Agent, and no attempts to get around a paywall. Papers with no abstract are kept in the database but left out of the analysis for that cycle. This mainly affects the Journal of Political Economy: OpenAlex has few of its abstracts and RePEc lists new papers late, so each run tries RePEc again. Journal housekeeping such as Front Matter and Recent Referees is dropped, so it doesn't count as missing.
 
 ## How the analysis and tags work
 
@@ -111,7 +124,7 @@ Two models keep the work inside Groq's free limits. `openai/gpt-oss-20b` scores 
 
 No person has measured the tag accuracy yet. As a first check, a second AI (Claude) tagged 20 papers using the same written rules, without seeing the first AI's tags, and the two agreed on all 20. The tags are in `data/second_reader_tags.csv`. That is a consistency check on a small sample, not an accuracy figure, because both readers are AIs following the same rules. For a human check, `python -m src.compare sheet` makes a sheet of 20 papers to tag by hand, and `python -m src.compare score` compares those tags with the AI's.
 
-Each month's selection takes the highest scores, at most 2 papers per source, with a mix of EM, DM and Transversal where possible. A paper belongs to the month it was first seen, because published dates are unreliable. The same month always gives the same issue.
+Each month's selection works like an editor's desk. A score alone can't pick the issue: in October 121 of 293 papers scored 9 or 10, and the two models use the scale a little differently. So `openai/gpt-oss-120b` reads every paper scoring 9 or 10, in groups of 40, and ranks the ones most useful to a markets team. The issue takes the top of that ranking, at most 2 papers per source, with a mix of EM, DM and Transversal where possible. It also writes a short opening note on what the papers tell the team. A paper belongs to the month it was first seen, because published dates are unreliable. Once chosen, an issue's list is saved, so the same month always gives the same issue.
 
 ## Run it locally
 
@@ -143,7 +156,7 @@ python -m src.main build-issue --month 2026-10
 python -m src.main run
 ```
 
-`run` collects, analyses, builds any missing issue and writes the public site. With no key, `analyse` says so and the saved results are used.
+`run` collects, analyses, builds any missing issue and writes the public site. `python -m src.main catch-up` does the same with no collecting. With no key, `analyse` says so and the saved results are used.
 
 To run the tests:
 
@@ -162,14 +175,15 @@ The public site is a static page with no server, so it needs no account and neve
 
 ## Monthly cost
 
-Nothing. Groq's free tier gave each model 1,000 requests a day, 8,000 tokens a minute and 200,000 tokens a day on 31 October 2026. GitHub Actions and Streamlit Community Cloud are free for this size of project. A normal month has about 300 new papers, and scoring one paper uses about 850 tokens, so a month's work fits well inside one day's allowance.
+Nothing. Groq's free tier gave each model 1,000 requests a day, 8,000 tokens a minute and 200,000 tokens a day on 31 October 2026. GitHub Actions and Streamlit Community Cloud are free for this size of project. A normal month has about 300 new papers, and scoring one paper uses about 850 tokens, so a month's work fits well inside one day's allowance. The editor's ranking and the write-ups add about 50,000 tokens an issue on the stronger model.
 
 ## Limits and next steps
 
 - Abstracts only. The agent never reads full papers, so it can only be as good as the abstract.
 - RePEc can lag a bank's own site by a few weeks.
 - Seven series give only a year, so they could not join the backfilled September and October issues. New papers from them are dated by the day the agent first sees them.
-- The free tier is slow: about 10 papers a minute.
+- The free tier is slow: about 10 papers a minute, and the daily allowance refills steadily rather than all at once. A big backlog takes a few days, which the catch-up job handles without help.
+- Scores bunch at 5 and 9, because the prompt names those values. The editor step works around this, but a better scale would need every paper scored again.
 - With more time: direct routes for the banks now on RePEc, a way to read the Reserve Bank of New Zealand if it opens an API, and a human check before each issue goes out.
 
 ## About AI help

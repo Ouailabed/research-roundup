@@ -13,10 +13,16 @@ One line for every choice: what we chose and why.
 - The public dashboard is a static page on GitHub Pages, reading one data file. It needs no account or server and never goes to sleep, which Streamlit Community Cloud apps do. `app.py` stays for running locally.
 - An issue is never chosen from part of a month: it waits until the month's papers are scored. It allows 5 left over, because a paper can keep failing the checks, and that shouldn't hold up an issue for ever.
 - Any past month with no finished issue gets built by whichever job comes next. A month needs both a saved list and a page, so a run that stopped halfway is finished later.
+- The prompt holds the IMF's full list of 43 advanced economies, from Table B of the April 2026 World Economic Outlook, not examples. With examples, the model called Korea emerging and Chile advanced, and tagged Italy EM. The list changes over time: Bulgaria joined when it took the euro in 2026.
+- A national programme or dataset names its country, so Medicare or SIPP means the US. A paper's publisher doesn't, because a Fed working paper can be about anywhere.
+- A second look runs when a tag clashes with the places a paper names. The model decides, not the code, because the check can be wrong: "American Indians" reads as India.
+- `python -m src.main check` compares each summary's numbers with its abstract. It can't tell rounding from invention, so it lists them for a person. Of 560 summaries it flagged 6, and all 6 were rounding or simple sums.
+- Tag checks use blind AI readers and say so. They were given only titles and abstracts, never the model's tags. The results file keeps the model's tag at the time, so the figure can be rechecked after tags change.
+- `timer.yml` was built as a stand-in for cron but isn't running. Claude's permission check refused to start a job that keeps rescheduling itself, so that stays the owner's call.
 - A catch-up job scores what's left and builds what's ready. Groq's daily allowance refills steadily, at about 2.3 tokens a second per model, not all at once. Without this job, a run that hit the limit would wait a week to carry on. With nothing to do it changes nothing.
 - GitHub's cron can't be relied on alone. By noon on 1 November none of this repo's scheduled runs had fired, including the 06:30 catch-up and the 07:00 monthly job, though every manual run worked. Other people report the same with no confirmed fix, and one new public repo started working later by itself. So the jobs sit on quiet minutes, which GitHub's docs advise, and cron stays as one trigger of several.
 - While work is left, the catch-up job waits 2 hours and starts its own next run, because a manual start always works. A run that makes no progress stops the chain, so it can't loop for ever.
-- The catch-up job also collects if no run has for a week, so a skipped weekly run costs a few days rather than a whole week. A job that runs for ever just to act as a clock was ruled out, because that isn't what Actions is for.
+- The catch-up job also collects if no run has for a week, so a skipped weekly run costs a few days rather than a whole week.
 - Python 3.14 on the laptop, in GitHub Actions and on Streamlit Community Cloud, so all three behave the same.
 - Feeds and official APIs come first, because they are stable and allowed. Scraping is a last resort.
 - G10 can mean the G10 countries or the G10 currencies, so we cover both. That adds the Reserve Bank of Australia, the Reserve Bank of New Zealand and Norges Bank.

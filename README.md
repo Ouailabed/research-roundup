@@ -181,7 +181,7 @@ Nothing. Groq's free tier gave each model 1,000 requests a day, 8,000 tokens a m
 
 - Abstracts only. The agent never reads full papers, so it can only be as good as the abstract.
 - RePEc can lag a bank's own site by a few weeks.
-- Seven series give only a year, so they could not join the backfilled September and October issues. New papers from them are dated by the day the agent first sees them.
+- Eight series give only a year, so they could not join the backfilled September and October issues. New papers from them are dated by the day the agent first sees them.
 - The free tier is slow: about 10 papers a minute, and the daily allowance refills steadily rather than all at once. A big backlog takes a few days, which the catch-up job handles without help.
 - Scores bunch at 5 and 9, because the prompt names those values. The editor step works around this, but a better scale would need every paper scored again.
 - With more time: direct routes for the banks now on RePEc, a way to read the Reserve Bank of New Zealand if it opens an API, and a human check before each issue goes out.

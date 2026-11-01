@@ -7,6 +7,8 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
+from src.publish import clean_topics
+
 ROOT = Path(__file__).resolve().parent
 DB_PATH = ROOT / "data" / "roundup.db"
 ISSUE_FOLDER = ROOT / "site" / "issues"
@@ -39,7 +41,7 @@ def load_papers():
     )
     issues = pd.read_sql_query("SELECT month, paper_id FROM issues ORDER BY month DESC, position", conn)
     conn.close()
-    papers["topics"] = papers["topics"].map(json.loads)
+    papers["topics"] = papers["topics"].map(lambda value: clean_topics(json.loads(value)))
     papers["takeaways"] = papers["takeaways"].map(json.loads)
     months = issues.groupby("paper_id")["month"].apply(list)
     papers["issues"] = papers["id"].map(months).apply(lambda value: value if isinstance(value, list) else [])

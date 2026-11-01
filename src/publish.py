@@ -1,11 +1,34 @@
 """Writes the public site: the home page, and one data file it reads to explore the papers."""
 import json
+import re
 import shutil
 
 from src.config import ROOT
 from src.db import connect, latest_health
 
 SITE = ROOT / "site"
+SAME_TOPIC = {
+    "artificial intelligence": "ai",
+    "behavioural economics": "behavioural",
+    "climate": "climate change",
+    "econometric methods": "econometrics",
+    "economic growth": "growth",
+    "fiscal": "fiscal policy",
+    "labour": "labour markets",
+    "labour economics": "labour markets",
+    "labour market": "labour markets",
+    "macroeconomic": "macroeconomics",
+    "monetary": "monetary policy",
+}
+
+
+def clean_topics(topics):
+    # Models write "Inflation" and "inflation", or "labor" and "labour", which would be separate filters.
+    cleaned = set()
+    for topic in topics:
+        topic = re.sub(r"\blabor\b", "labour", topic.strip().lower())
+        cleaned.add(SAME_TOPIC.get(topic, topic))
+    return sorted(cleaned)
 
 
 def paper_rows(conn):
@@ -34,8 +57,7 @@ def site_data(conn):
         months.setdefault(row["paper_id"], []).append(row["month"])
     papers = paper_rows(conn)
     for paper in papers:
-        # Models write "Inflation" and "inflation", which would be two topics in the filter.
-        paper["topics"] = sorted({topic.strip().lower() for topic in json.loads(paper["topics"])})
+        paper["topics"] = clean_topics(json.loads(paper["topics"]))
         paper["takeaways"] = json.loads(paper["takeaways"])
         paper["issues"] = months.get(paper["id"], [])
     built = sorted((SITE / "issues").glob("*.html"), reverse=True)

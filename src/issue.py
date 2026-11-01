@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import time
 from collections import Counter
 from datetime import date, timedelta
 
@@ -99,7 +100,14 @@ def editor_text(rows):
 
 def ask_editor(client, model, rows, keep):
     """Returns the rows the editor kept, best first, or None if it gave no usable answer."""
-    answer = checked_answer(client, model, EDITOR_RULES.format(keep=keep), editor_text(rows), Ranking, "the editor")
+    while True:
+        try:
+            answer = checked_answer(client, model, EDITOR_RULES.format(keep=keep), editor_text(rows), Ranking, "the editor")
+            break
+        except DailyLimitReached as error:
+            # The ranking only counts once every group is done, so stopping here would waste the calls before it.
+            print(f"{error}, so the editor waits {error.seconds:.0f} seconds.", flush=True)
+            time.sleep(error.seconds)
     if not answer:
         return None
     numbers = dict.fromkeys(number for number in answer.ranking if 1 <= number <= len(rows))
@@ -190,16 +198,12 @@ def write_up(conn, paper_ids, model):
 
 
 def write_overview(conn, month, papers, model):
-    """The issue's opening note. It is an extra, so an issue still builds without one."""
+    """The issue's opening note. With no key or no usable answer, the issue builds without one."""
     saved = saved_overview(conn, month)
     if saved or not have_key():
         return saved
     text = "\n\n".join(f"{paper['title']} ({paper['market_focus']})\n{paper['summary']}" for paper in papers)
-    try:
-        answer = checked_answer(groq_client(), model, OVERVIEW_RULES, text, Overview, "the opening note")
-    except DailyLimitReached as error:
-        print(f"No opening note this time: {error}.")
-        return ""
+    answer = checked_answer(groq_client(), model, OVERVIEW_RULES, text, Overview, "the opening note")
     if not answer:
         return ""
     overview = no_em_dash(answer.overview)
@@ -253,13 +257,8 @@ def build_issue(month=None):
             print(f"{month}: {left} papers still to score, so its issue waits.")
             conn.close()
             return None
-        try:
-            client = groq_client() if have_key() else None
-            chosen = choose_papers(editor_order(issue_candidates(conn, month), models["strong"], client))
-        except DailyLimitReached as error:
-            print(f"Stopped for today: {error}. Run this again later and it carries on.")
-            conn.close()
-            return None
+        client = groq_client() if have_key() else None
+        chosen = choose_papers(editor_order(issue_candidates(conn, month), models["strong"], client))
         if len(chosen) < MIN_PAPERS:
             print(f"{month}: only {len(chosen)} analysed papers, so no issue was built.")
             conn.close()
@@ -269,7 +268,12 @@ def build_issue(month=None):
         conn.close()
         return None
     papers = issue_context(issue_papers(conn, month))
-    overview = write_overview(conn, month, papers, models["strong"])
+    try:
+        overview = write_overview(conn, month, papers, models["strong"])
+    except DailyLimitReached as error:
+        print(f"Stopped for today: {error}. Run this again later and it carries on.")
+        conn.close()
+        return None
     paper_count, source_count = month_counts(conn, month)
     conn.close()
     ISSUE_FOLDER.mkdir(parents=True, exist_ok=True)

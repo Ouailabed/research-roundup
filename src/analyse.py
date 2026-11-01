@@ -62,7 +62,9 @@ THINKING = {Score: "low", Ranking: "medium"}
 
 
 class DailyLimitReached(Exception):
-    pass
+    def __init__(self, message, seconds=60):
+        super().__init__(message)
+        self.seconds = seconds
 
 
 def response_format(shape):
@@ -104,7 +106,7 @@ def call_model(client, model, rules, text, shape):
             return reply.choices[0].message.content
         except RateLimitError as error:
             if "per day" in str(error):
-                raise DailyLimitReached(f"{model} has used up today's allowance") from error
+                raise DailyLimitReached(f"{model} has used up today's allowance", seconds_to_wait(error)) from error
             time.sleep(seconds_to_wait(error))
 
 

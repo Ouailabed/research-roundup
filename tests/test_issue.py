@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from src import db, issue
-from src.analyse import Overview
+from src.analyse import DailyLimitReached, Overview, Ranking
 from tests.test_db import RESULT, make_paper
 from src.issue import choose_papers, date_label, editor_order, issue_context, last_full_month, months_since, no_em_dash
 
@@ -114,6 +114,38 @@ def test_no_usable_answer_means_the_plain_scores_decide(monkeypatch, capsys):
     monkeypatch.setattr(issue, "checked_answer", lambda *args: None)
     assert editor_order(rows, "model", Editor(last_first)) == rows
     assert "plain scores" in capsys.readouterr().out
+
+
+def test_the_editor_waits_out_the_daily_limit(monkeypatch, capsys):
+    rows = [paper_row(number) for number in range(1, 13)]
+    naps = []
+    answers = iter([DailyLimitReached("the model has used up today's allowance", 110), Ranking(ranking=[2, 1])])
+
+    def next_answer(*args):
+        answer = next(answers)
+        if isinstance(answer, Exception):
+            raise answer
+        return answer
+
+    monkeypatch.setattr(issue, "checked_answer", next_answer)
+    monkeypatch.setattr(issue.time, "sleep", naps.append)
+    order = editor_order(rows, "model", Editor(last_first))
+    assert naps == [110]
+    assert [row[0] for row in sorted(order, key=lambda row: -row[3])[:2]] == ["p002", "p001"]
+
+
+def test_an_issue_with_no_opening_note_yet_is_finished_on_a_later_run(month_of_papers, monkeypatch):
+    monkeypatch.setattr(issue, "have_key", lambda: False)
+    db.save_issue(month_of_papers, "2026-10", ["p0"])
+
+    def limit(*args):
+        raise DailyLimitReached("the model has used up today's allowance")
+
+    monkeypatch.setattr(issue, "write_up", lambda *args: True)
+    monkeypatch.setattr(issue, "issue_papers", lambda *args: [])
+    monkeypatch.setattr(issue, "write_overview", limit)
+    assert issue.build_issue("2026-10") is None
+    assert not issue.is_finished(month_of_papers, "2026-10")
 
 
 def test_no_key_means_the_plain_scores_decide():

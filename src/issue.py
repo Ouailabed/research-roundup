@@ -18,6 +18,7 @@ from src.db import (
     issue_papers,
     month_counts,
     paper_by_id,
+    papers_to_analyse,
     save_issue,
     save_overview,
     save_writeup,
@@ -287,14 +288,30 @@ def months_since(first, last):
     return months
 
 
+def is_finished(conn, month):
+    # A run that stopped halfway has a list but no page yet.
+    return bool(saved_issue(conn, month)) and (ISSUE_FOLDER / f"{month}.html").exists()
+
+
 def build_missing_issues():
-    """Builds any past month with no finished issue. A run that stopped halfway has a list but no page yet."""
+    """Builds any past month with no finished issue."""
     for month in months_since(load_settings()["analyse_from"], last_full_month()):
         conn = connect()
-        chosen = saved_issue(conn, month)
+        finished = is_finished(conn, month)
         conn.close()
-        if not chosen or not (ISSUE_FOLDER / f"{month}.html").exists():
+        if not finished:
             build_issue(month)
+
+
+def work_left():
+    """Counts the papers still to score and the past issues still to build."""
+    settings = load_settings()
+    conn = connect()
+    papers = len(papers_to_analyse(conn, settings["analyse_from"]))
+    months = months_since(settings["analyse_from"], last_full_month())
+    issues = sum(not is_finished(conn, month) for month in months)
+    conn.close()
+    return papers + issues
 
 
 if __name__ == "__main__":

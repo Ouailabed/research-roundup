@@ -4,22 +4,25 @@ name: Catch up
 # so the rest doesn't wait a week. With nothing left to do, it changes nothing.
 on:
   schedule:
-    - cron: "30 */6 * * *"
+    - cron: "17 */6 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
 
-# The weekly and monthly jobs both write the database, which git can't merge, so they take turns.
-concurrency:
-  group: data-writes
-  cancel-in-progress: false
-
 jobs:
   catch-up:
     runs-on: ubuntu-latest
+    # The weekly and monthly jobs both write the database, which git can't merge, so they take turns.
+    concurrency:
+      group: data-writes
+      cancel-in-progress: false
     env:
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
+      CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
+    outputs:
+      again: ${{ steps.save.outputs.again }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -29,10 +32,36 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python -m src.main catch-up
       - name: Save the results
+        id: save
         run: |
           git config user.name "research-roundup-agent"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data site
-          git diff --cached --quiet || git commit -m "Catch up: more papers scored"
+          if git diff --cached --quiet; then
+            # No progress, so stop here rather than loop for ever.
+            echo "again=no" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "Catch up: more papers scored"
           git pull --rebase
           git push
+          if [ "$(python -m src.main left)" != "0" ]; then
+            echo "again=yes" >> "$GITHUB_OUTPUT"
+          fi
+
+  # GitHub's cron can be late or skip a run, so while work is left this job starts the next run itself.
+  again:
+    needs: catch-up
+    if: needs.catch-up.outputs.again == 'yes'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Show this run's results on the site
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY"
+      - name: Give Groq's allowance 2 hours to refill
+        run: sleep 7200
+      - name: Start the next run
+        run: gh workflow run catch-up.yml --repo "$GITHUB_REPOSITORY"

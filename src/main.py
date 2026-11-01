@@ -1,10 +1,10 @@
 import argparse
 
 from src.analyse import analyse_all
-from src.collect import backfill, collect_all
+from src.collect import backfill, collect_all, collect_is_due
 from src.db import connect, latest_health
 from src.health import markdown_table
-from src.issue import build_issue, build_missing_issues
+from src.issue import build_issue, build_missing_issues, work_left
 from src.publish import publish_site
 
 
@@ -19,7 +19,8 @@ def main():
     commands.add_parser("build-missing", help="build any past month that has no issue yet")
     commands.add_parser("publish", help="write the public site from the saved data")
     commands.add_parser("run", help="collect, analyse, build-missing and publish")
-    commands.add_parser("catch-up", help="analyse, build-missing and publish, with no collecting")
+    commands.add_parser("catch-up", help="analyse, build-missing and publish, and collect only if a week has passed")
+    commands.add_parser("left", help="print how many papers and past issues are still waiting")
     older = commands.add_parser("backfill", help="load older papers, once")
     older.add_argument("--since", required=True, help="for example 2026-09-01")
     commands.add_parser("health", help="print the last source report as Markdown")
@@ -42,9 +43,13 @@ def main():
         build_missing_issues()
         publish_site()
     elif arguments.command == "catch-up":
+        if collect_is_due():
+            collect_all()
         analyse_all()
         build_missing_issues()
         publish_site()
+    elif arguments.command == "left":
+        print(work_left())
     elif arguments.command == "backfill":
         backfill(arguments.since)
     elif arguments.command == "health":

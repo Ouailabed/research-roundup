@@ -14,6 +14,7 @@ from src.models import Paper, clean_abstract, clean_text, clean_url, make_id
 
 REPEC_PAPERS_PER_RUN = 30
 BACKFILL_ROWS = 200
+DAYS_BETWEEN_COLLECTS = 7
 NBER_DOIS = "https://api.crossref.org/prefixes/10.3386/works"
 NBER_LISTING = "https://www.nber.org/api/v1/working_page_listing/contentType/working_paper/_/_/search"
 MOST_CUT = 0.2
@@ -355,6 +356,16 @@ def collect_source(conn, source, known, run_at):
         row["status"] = "failed"
         row["note"] = safe_text(error)
     return row
+
+
+def collect_is_due(today=None):
+    """True if no run has read the sources for a week. GitHub can skip a scheduled run, so the next job covers for it."""
+    conn = connect()
+    last = conn.execute("SELECT MAX(run_at) FROM health").fetchone()[0]
+    conn.close()
+    if not last:
+        return False
+    return (today or date.today()) - date.fromisoformat(last[:10]) >= timedelta(days=DAYS_BETWEEN_COLLECTS)
 
 
 def collect_all():

@@ -2,7 +2,7 @@ name: Monthly issue
 
 on:
   schedule:
-    - cron: "0 7 1 * *"
+    - cron: "23 7 1 * *"
   workflow_dispatch:
     inputs:
       month:

@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -163,6 +164,21 @@ def test_full_abstracts_raise_no_warning():
 
 def test_a_long_abstract_with_no_full_stop_is_not_called_cut():
     assert cut_note(["We study rates " * 40]) == ""
+
+
+def test_collecting_comes_due_after_a_week(monkeypatch, tmp_path):
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "test.db")
+    conn = db.connect()
+    row = {"run_at": "2026-11-01T02:00:00+00:00", "source": "NBER", "source_group": "x", "route": "rss", "status": "working", "found": 1, "new": 0, "missing_abstracts": 0, "note": ""}
+    db.save_health(conn, [row])
+    conn.close()
+    assert not collect.collect_is_due(date(2026, 11, 7))
+    assert collect.collect_is_due(date(2026, 11, 8))
+
+
+def test_a_database_with_no_runs_does_not_collect_by_itself(monkeypatch, tmp_path):
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "test.db")
+    assert not collect.collect_is_due(date(2026, 11, 8))
 
 
 def test_a_missing_abstract_is_filled_from_repec(monkeypatch, tmp_path):

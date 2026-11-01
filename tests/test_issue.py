@@ -179,6 +179,26 @@ def test_a_month_with_a_page_but_no_list_is_chosen_again(month_of_papers, monkey
     assert built == ["2026-09"]
 
 
+def test_work_left_counts_papers_and_unfinished_issues(month_of_papers, monkeypatch):
+    monkeypatch.setattr(issue, "last_full_month", lambda: "2026-10")
+    monkeypatch.setattr(issue, "load_settings", lambda: {"analyse_from": "2026-09-01"})
+    db.save_papers(month_of_papers, [make_paper("new")])
+    issue.ISSUE_FOLDER.mkdir()
+    db.save_issue(month_of_papers, "2026-10", ["p0"])
+    (issue.ISSUE_FOLDER / "2026-10.html").write_text("done")
+    # One paper to score, plus September, which has no issue yet.
+    assert issue.work_left() == 2
+
+
+def test_no_work_left_means_zero(month_of_papers, monkeypatch):
+    monkeypatch.setattr(issue, "last_full_month", lambda: "2026-10")
+    monkeypatch.setattr(issue, "load_settings", lambda: {"analyse_from": "2026-10-01"})
+    issue.ISSUE_FOLDER.mkdir()
+    db.save_issue(month_of_papers, "2026-10", ["p0"])
+    (issue.ISSUE_FOLDER / "2026-10.html").write_text("done")
+    assert issue.work_left() == 0
+
+
 def test_an_opening_note_is_written_once_and_saved(monkeypatch, tmp_path):
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "test.db")
     monkeypatch.setattr(issue, "have_key", lambda: True)

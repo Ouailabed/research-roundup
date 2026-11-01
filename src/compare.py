@@ -1,27 +1,45 @@
 """Compare hand tags with the AI's tags. Make the sheet, tag it by hand, then score it."""
 import csv
+import hashlib
 import sys
 
 from src.config import ROOT
 from src.db import connect
 
 SHEET = ROOT / "data" / "hand_tags.csv"
+SECOND_READER = ROOT / "data" / "second_reader_tags.csv"
 PAPERS_PER_TAG = {"EM": 8, "DM": 6, "Transversal": 6}
 TAGS = set(PAPERS_PER_TAG)
 
 
+def already_tagged():
+    if not SECOND_READER.exists():
+        return set()
+    with open(SECOND_READER, newline="", encoding="utf-8-sig") as file:
+        return {row["id"] for row in csv.DictReader(file)}
+
+
+def shuffled(paper_id):
+    # A hash gives a random-looking order that stays the same on every run.
+    return hashlib.sha256(paper_id.encode("utf-8")).hexdigest()
+
+
 def make_sheet():
     """EM papers are rarer, so the sheet takes more of them. The AI's tags are left out on purpose."""
+    skip = already_tagged()
     conn = connect()
     rows = []
     for focus, count in PAPERS_PER_TAG.items():
-        rows += conn.execute(
+        papers = conn.execute(
             """SELECT p.id, p.title, p.abstract FROM papers p JOIN analyses a ON a.paper_id = p.id
-            WHERE a.market_focus = ? ORDER BY p.id LIMIT ?""",
-            (focus, count),
+            WHERE a.market_focus = ?""",
+            (focus,),
         ).fetchall()
+        fresh = [paper for paper in papers if paper["id"] not in skip]
+        rows += sorted(fresh, key=lambda paper: shuffled(paper["id"]))[:count]
     conn.close()
-    rows.sort(key=lambda row: row["id"])
+    # Mixing the three groups means a paper's place can't give its tag away.
+    rows.sort(key=lambda row: shuffled(row["id"]))
     # utf-8-sig lets Excel read accents correctly.
     with open(SHEET, "w", newline="", encoding="utf-8-sig") as file:
         writer = csv.writer(file)

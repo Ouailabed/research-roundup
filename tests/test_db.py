@@ -60,6 +60,13 @@ def test_old_papers_are_left_out(conn):
     assert db.papers_to_analyse(conn, "2026-09-01") == []
 
 
+def test_unscored_papers_are_counted_by_month(conn):
+    db.save_papers(conn, [make_paper("a"), make_paper("b"), make_paper("c", first_seen="2026-09-05")])
+    db.save_analysis(conn, "a", "cheap", RESULT)
+    assert db.count_unscored(conn, "2026-10") == 1
+    assert db.count_unscored(conn, "2026-09") == 1
+
+
 def test_saved_issue_keeps_its_order(conn):
     db.save_issue(conn, "2026-10", ["c", "a", "b"])
     assert db.saved_issue(conn, "2026-10") == ["c", "a", "b"]

@@ -9,6 +9,8 @@ One line for every choice: what we chose and why.
 - `qwen/qwen3.8-27b` was tried for scoring and dropped. Groq refused about 3 in 10 of its answers, and it scored on a different scale, so mixing it in would have favoured some papers unfairly.
 - Scores and full write-ups live in separate tables, because the strong model can do both for the same paper.
 - Each issue takes 5 to 8 papers: the best paper of each tag first, so there is a mix where possible, then the highest scores, at most 2 per source. Ties go by id, so the same month always gives the same issue. Once chosen, an issue's list is saved and reused.
+- The public dashboard is a static page on GitHub Pages, reading one data file. It needs no account or server and never goes to sleep, which Streamlit Community Cloud apps do. `app.py` stays for running locally.
+- The weekly job builds any past month that has no issue yet, but only once all of that month's papers are scored, so an issue is never chosen from part of a month.
 - Python 3.14 on the laptop, in GitHub Actions and on Streamlit Community Cloud, so all three behave the same.
 - Feeds and official APIs come first, because they are stable and allowed. Scraping is a last resort.
 - G10 can mean the G10 countries or the G10 currencies, so we cover both. That adds the Reserve Bank of Australia, the Reserve Bank of New Zealand and Norges Bank.

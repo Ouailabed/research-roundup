@@ -22,8 +22,7 @@ jobs:
           python-version: "3.14"
           cache: pip
       - run: pip install -r requirements.txt
-      - run: python -m src.main collect
-      - run: python -m src.main analyse
+      - run: python -m src.main run
       - name: Save the results
         run: |
           git config user.name "research-roundup-agent"

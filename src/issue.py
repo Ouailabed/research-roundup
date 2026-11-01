@@ -11,6 +11,7 @@ from src.analyse import Analysis, DailyLimitReached, analyse_paper
 from src.config import ROOT
 from src.db import (
     connect,
+    count_unscored,
     has_writeup,
     issue_candidates,
     issue_papers,
@@ -139,15 +140,6 @@ def render_issue(month, papers, paper_count, source_count):
     return Premailer(html, keep_style_tags=True, strip_important=False, cssutils_logging_level=logging.CRITICAL).transform()
 
 
-def write_index():
-    """The page GitHub Pages opens first: a list of every issue, newest first."""
-    paths = sorted(ISSUE_FOLDER.glob("*.html"), reverse=True)
-    environment = Environment(loader=FileSystemLoader(ROOT / "templates"), autoescape=select_autoescape(["html"]))
-    issues = [{"file": path.name, "label": month_label(path.stem)} for path in paths]
-    html = environment.get_template("index.html").render(issues=issues)
-    (ROOT / "site" / "index.html").write_text(html, encoding="utf-8")
-
-
 def build_issue(month=None):
     month = month or last_full_month()
     models = load_settings()["models"]
@@ -169,9 +161,31 @@ def build_issue(month=None):
     ISSUE_FOLDER.mkdir(parents=True, exist_ok=True)
     path = ISSUE_FOLDER / f"{month}.html"
     path.write_text(render_issue(month, papers, paper_count, source_count), encoding="utf-8")
-    write_index()
     print(f"Built {path.relative_to(ROOT)} with {len(papers)} papers")
     return path
+
+
+def months_since(first, last):
+    months = []
+    year, month = int(first[:4]), int(first[5:7])
+    while f"{year:04d}-{month:02d}" <= last:
+        months.append(f"{year:04d}-{month:02d}")
+        year, month = (year + 1, 1) if month == 12 else (year, month + 1)
+    return months
+
+
+def build_missing_issues():
+    """Builds any past month that has no issue yet, once all of its papers are scored."""
+    for month in months_since(load_settings()["analyse_from"], last_full_month()):
+        if (ISSUE_FOLDER / f"{month}.html").exists():
+            continue
+        conn = connect()
+        left = count_unscored(conn, month)
+        conn.close()
+        if left:
+            print(f"{month}: {left} papers still to score, so its issue waits.")
+        else:
+            build_issue(month)
 
 
 if __name__ == "__main__":

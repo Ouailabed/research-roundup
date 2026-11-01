@@ -2,15 +2,15 @@
 
 An automated Python agent that watches economics research and builds a monthly newsletter for a markets research team.
 
-Every week it collects new papers from journals, central banks and research bodies, and uses AI to summarise, score and tag each one as EM, DM or Transversal. Every month it picks 5 to 8 papers and builds a responsive HTML newsletter. A dashboard shows each issue and lets you explore the papers.
+Every week it collects new papers from journals, central banks and research bodies, and uses AI to summarise, score and tag each one as EM, DM or Transversal. Every month it picks 5 to 8 papers and builds a responsive HTML newsletter. A public site shows each issue and lets you explore the papers.
 
-- Live dashboard: LIVE_DASHBOARD_LINK
-- Latest newsletter: LIVE_NEWSLETTER_LINK
+- Live site, with the newsletter, paper explorer and archive: https://ouailabed.github.io/research-roundup/
+- Latest newsletter on its own: https://ouailabed.github.io/research-roundup/issues/2026-10.html
 - Sample issue in this repo: [site/issues/2026-10.html](site/issues/2026-10.html)
 
-| The newsletter | The dashboard |
+| The newsletter | Exploring the papers |
 |---|---|
-| <img src="docs/newsletter.png" alt="The October 2026 newsletter" width="360"> | <img src="docs/dashboard.jpg" alt="The Explore papers page of the dashboard" width="480"> |
+| <img src="docs/newsletter.png" alt="The October 2026 newsletter" width="360"> | <img src="docs/explore.png" alt="The Explore papers page" width="480"> |
 
 ## How it works
 
@@ -23,9 +23,9 @@ Feeds and APIs (44 sources)
       |
  build-issue     picks 5 to 8 papers, stronger model writes them up, builds the HTML
       |
-  dashboard      Streamlit app to read issues and explore papers
+   publish       writes the public site: latest issue, paper explorer and archive
 
-GitHub Actions runs collect and analyse every Monday, and build-issue on the 1st of each month.
+GitHub Actions runs everything every Monday and builds the new issue on the 1st of each month.
 ```
 
 | Folder | What is in it |
@@ -33,10 +33,10 @@ GitHub Actions runs collect and analyse every Monday, and build-issue on the 1st
 | `src` | The Python code |
 | `config` | `sources.yaml` lists every source and `settings.yaml` holds the model names |
 | `data` | The SQLite database |
-| `templates` | The newsletter layout |
-| `site/issues` | The finished newsletters |
+| `templates` | The newsletter layout and the public site's page |
+| `site` | The public site and the finished newsletters |
 | `tests` | The automatic tests |
-| `app.py` | The dashboard |
+| `app.py` | A Streamlit version of the dashboard, for running locally |
 
 ## Sources
 
@@ -109,7 +109,7 @@ Tags follow one rule set, based on the IMF's list of advanced economies:
 
 Two models keep the work inside Groq's free limits. `openai/gpt-oss-20b` scores every paper at low effort, and `openai/gpt-oss-120b` takes over if it runs out for the day. `openai/gpt-oss-120b` also writes the full analysis, only for the papers chosen for an issue. Every result is saved with its model name and date, so the same model never reads the same paper twice, and a run that stops at the daily limit carries on from where it stopped.
 
-Tag accuracy has not been measured yet. `python -m src.compare sheet` makes a sheet of 20 papers to tag by hand, and `python -m src.compare score` compares those tags with the AI's.
+No person has measured the tag accuracy yet. As a first check, a second AI (Claude) tagged 20 papers using the same written rules, without seeing the first AI's tags, and the two agreed on all 20. The tags are in `data/second_reader_tags.csv`. That is a consistency check on a small sample, not an accuracy figure, because both readers are AIs following the same rules. For a human check, `python -m src.compare sheet` makes a sheet of 20 papers to tag by hand, and `python -m src.compare score` compares those tags with the AI's.
 
 Each month's selection takes the highest scores, at most 2 papers per source, with a mix of EM, DM and Transversal where possible. A paper belongs to the month it was first seen, because published dates are unreliable. The same month always gives the same issue.
 
@@ -143,7 +143,7 @@ python -m src.main build-issue --month 2026-10
 python -m src.main run
 ```
 
-`run` does all three steps. With no key, `analyse` says so and the saved results are used.
+`run` collects, analyses, builds any missing issue and writes the public site. With no key, `analyse` says so and the saved results are used.
 
 To run the tests:
 
@@ -153,10 +153,12 @@ python -m pytest
 
 ## Deploy it
 
-1. Fork or push this repo to GitHub.
-2. Add `GROQ_API_KEY`, `OPENALEX_API_KEY` and `CONTACT_EMAIL` under Settings, Secrets and variables, Actions.
-3. The two workflows in `.github/workflows` then run by themselves. You can also start them by hand from the Actions tab.
-4. Sign in at share.streamlit.io with GitHub, choose this repo, set the main file to `app.py`, and pick Python 3.14 under Advanced settings.
+1. Fork or push this repo to GitHub, as a public repo.
+2. Add `GROQ_API_KEY` under Settings, Secrets and variables, Actions. `OPENALEX_API_KEY` and `CONTACT_EMAIL` are optional.
+3. Under Settings, Pages, set the source to GitHub Actions.
+4. The workflows in `.github/workflows` then run by themselves. You can also start them by hand from the Actions tab.
+
+The public site is a static page with no server, so it needs no account and never goes to sleep. `app.py` can also be deployed on Streamlit Community Cloud if you prefer: choose this repo, set the main file to `app.py`, and pick Python 3.14 under Advanced settings.
 
 ## Monthly cost
 

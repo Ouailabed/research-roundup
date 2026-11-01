@@ -1,6 +1,6 @@
 from datetime import date
 
-from src.issue import choose_papers, date_label, issue_context, last_full_month, no_em_dash
+from src.issue import choose_papers, date_label, issue_context, last_full_month, months_since, no_em_dash
 
 ROWS = [
     ("a", "NBER", "DM", 9),
@@ -44,6 +44,10 @@ def test_highest_score_comes_first():
 def test_last_full_month():
     assert last_full_month(date(2026, 11, 1)) == "2026-10"
     assert last_full_month(date(2026, 1, 15)) == "2025-12"
+
+
+def test_months_since_crosses_a_year():
+    assert months_since("2026-11-01", "2027-02") == ["2026-11", "2026-12", "2027-01", "2027-02"]
 
 
 def test_date_labels():

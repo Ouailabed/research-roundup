@@ -136,6 +136,15 @@ def papers_to_analyse(conn, since):
     ).fetchall()
 
 
+def count_unscored(conn, month):
+    return conn.execute(
+        """SELECT COUNT(*) FROM papers
+        WHERE abstract <> '' AND duplicate_of IS NULL AND substr(first_seen, 1, 7) = ?
+        AND id NOT IN (SELECT paper_id FROM analyses)""",
+        (month,),
+    ).fetchone()[0]
+
+
 def right_now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 

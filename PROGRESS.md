@@ -12,6 +12,7 @@
 - Live on 1 November 2026: the repo is public, GitHub Pages is on, and the Groq key is in GitHub Secrets.
 - Improved on 1 November 2026: 56 sources (55 work, 1 not covered), full NBER abstracts, cleaner text, JPE abstracts from RePEc, an editor step and an opening note for each issue, a warning for cut abstracts, a self-restarting catch-up job, a better site and newsletter, 111 tests.
 - Redesigned on 1 November 2026: an Overview dashboard with filters and charts, cleaner Explore and Archive pages, dark mode, and new tag colours on the site and the newsletter. 144 tests.
+- Added on 1 November 2026: an assistant you can ask questions on the home page, a 3D map of the papers, and motion across the dashboard, with a pause button. 146 tests.
 
 ## Current step
 All 604 papers are scored. Both months are chosen by the editor step, and the write-ups are being done. The catch-up job restarts itself every 2 hours until both issues are built.

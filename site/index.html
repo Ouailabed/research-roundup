@@ -13,7 +13,7 @@
     color-scheme: light;
     --page: #f2f4f7; --surface: #ffffff; --raised: #f5f7fa; --ink: #16232f; --soft: #56677a;
     --line: #e3e8ee; --axis: #c5ced8; --field: #b4c0cd; --link: #1c5f9c;
-    --mast: #12263a; --mast-soft: #a9bccd; --strong: #12263a; --quiet: #b6c1cc; --on-strong: #ffffff;
+    --mast: #12263a; --mast-soft: #c9d6e3; --strong: #12263a; --quiet: #b6c1cc; --on-strong: #ffffff;
     --EM: #c4540a; --DM: #2470c2; --Transversal: #0a8360; --on-mark: #ffffff;
     --good: #0ca30c; --warn: #b97a00; --bad: #d03b3b;
     --serif: Georgia, "Times New Roman", serif;
@@ -32,7 +32,10 @@
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--page); color: var(--ink); font-family: var(--sans); line-height: 1.5; }
   a { color: var(--link); }
-  header { background: var(--mast); color: #ffffff; }
+  header { position: relative; overflow: hidden; isolation: isolate; background: var(--mast); color: #ffffff; }
+  header::before, header::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; pointer-events: none; }
+  header::before { left: -260px; top: -360px; width: 820px; height: 820px; background: radial-gradient(circle, rgba(36, 112, 194, .55), transparent 68%); animation: drift 19s ease-in-out infinite alternate; }
+  header::after { right: -240px; bottom: -340px; width: 780px; height: 780px; background: radial-gradient(circle, rgba(10, 131, 96, .42), transparent 68%); animation: drift 23s ease-in-out infinite alternate-reverse; }
   .bar { max-width: 1120px; margin: 0 auto; padding: 22px 16px 0; }
   h1 { margin: 0; font: normal 30px/1.2 var(--serif); }
   .lede { margin: 4px 0 14px; color: var(--mast-soft); font-size: 15px; }
@@ -185,6 +188,98 @@
   th { color: var(--soft); font-weight: 600; }
   .num { text-align: right; font-variant-numeric: tabular-nums; }
   footer { max-width: 1120px; margin: 0 auto; padding: 0 16px 32px; font-size: 13px; color: var(--soft); }
+  /* The assistant and the 3D map. This band stays dark in both themes, so its colours are fixed. */
+  .hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 16px 28px; align-items: center; max-width: 1120px; margin: 0 auto; padding: 20px 16px 28px; }
+  .status { display: flex; align-items: center; gap: 9px; margin: 0 0 10px; font-size: 13px; color: var(--mast-soft); }
+  .pulse { position: relative; flex: none; width: 9px; height: 9px; border-radius: 50%; background: #3cc293; }
+  .pulse::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: inherit; animation: ping 2.4s ease-out infinite; }
+  .hero-title { margin: 0 0 8px; font: normal 34px/1.18 var(--serif); color: #ffffff; }
+  .hero-sub { margin: 0 0 16px; font-size: 15px; color: #c9d6e3; }
+  .ask { display: flex; gap: 6px; padding: 6px; background: rgba(255, 255, 255, .09); border: 1px solid rgba(255, 255, 255, .24); border-radius: 14px; transition: border-color .25s, box-shadow .25s; }
+  .ask:focus-within { border-color: #7db6ec; box-shadow: 0 0 0 3px rgba(125, 182, 236, .25), 0 10px 34px rgba(63, 142, 230, .3); }
+  .ask input { flex: 1; min-width: 0; padding: 10px 12px; font-size: 16px; color: #ffffff; background: transparent; border: 0; }
+  .ask input::placeholder { color: #a9bccd; }
+  .ask input:focus-visible { outline: 2px solid transparent; }
+  .ask-send { flex: none; width: 44px; font: 600 19px var(--sans); color: #12263a; background: #ffffff; border: 0; border-radius: 10px; cursor: pointer; transition: transform .15s; }
+  .ask-send:hover { transform: scale(1.06); }
+  .ask-send:active { transform: scale(.94); }
+  .ask-send:focus-visible, .prompt:focus-visible { outline-color: #ffffff; }
+  .prompts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .prompt { padding: 5px 11px; font: 13px var(--sans); color: #e6ecf2; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .16); border-radius: 14px; cursor: pointer; transition: background .15s, transform .15s; }
+  .prompt:hover { background: rgba(255, 255, 255, .17); transform: translateY(-1px); }
+  .ask-note { margin: 10px 0 0; font-size: 12px; color: var(--mast-soft); }
+  .hero-scene { min-width: 0; }
+  #scene { display: block; width: 100%; height: 400px; cursor: grab; touch-action: pan-y; }
+  #scene:active { cursor: grabbing; }
+  #scene:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; border-radius: 8px; }
+  .scene-key { margin: 2px 0 0; font-size: 12px; color: var(--mast-soft); text-align: center; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  /* The conversation */
+  .chat-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .thread { display: grid; gap: 14px; }
+  .msg-you { justify-self: end; max-width: 80%; padding: 8px 14px; font-size: 15px; color: var(--on-strong); background: var(--strong); border-radius: 14px 14px 3px 14px; animation: fade-up .3s both; }
+  .msg-agent { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 10px; align-items: start; animation: fade-up .3s both; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: conic-gradient(var(--EM), var(--DM), var(--Transversal), var(--EM)); }
+  .avatar.busy { animation: spin 1.4s linear infinite; }
+  .msg-agent:focus { outline: none; }
+  .msg-text { margin: 4px 0 0; font: 15.5px/1.55 var(--serif); }
+  .thinking { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; font-size: 13px; color: var(--soft); }
+  .dots { display: inline-flex; gap: 4px; }
+  .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--soft); animation: blink 1s ease-in-out infinite; }
+  .dots i:nth-child(2) { animation-delay: .16s; }
+  .dots i:nth-child(3) { animation-delay: .32s; }
+  .answers { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-top: 10px; }
+  .answer { display: flex; flex-direction: column; padding: 12px 14px; background: var(--raised); border: 1px solid var(--line); border-radius: 10px; animation: fade-up .45s both; animation-delay: calc(var(--i, 0) * 80ms); }
+  .answer-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--soft); }
+  .answer h4 { margin: 8px 0 4px; font: normal 16px/1.3 var(--serif); }
+  .answer h4 a { color: var(--ink); text-decoration: none; }
+  .answer h4 a:hover { text-decoration: underline; }
+  .answer-meta { margin: 0 0 6px; font-size: 12px; color: var(--soft); }
+  .snippet { display: -webkit-box; flex: 1; margin: 0; overflow: hidden; font-size: 13px; color: var(--soft); -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; }
+  .answer.full .snippet { display: block; }
+  .link-button { padding: 0; font: 600 12px var(--sans); color: var(--link); background: transparent; border: 0; cursor: pointer; }
+  .link-button:hover { text-decoration: underline; }
+  .answer .actions { gap: 12px; margin-top: 10px; }
+
+  /* Motion. Everything here is switched off for readers who ask for less motion. */
+  main > section:not([hidden]) { animation: fade-up .4s both; }
+  .col-stack { transform-origin: bottom; animation: rise .8s cubic-bezier(.16, 1, .3, 1) both; animation-delay: calc(var(--i, 0) * 45ms); }
+  .row-stack { transform-origin: left; animation: stretch .8s cubic-bezier(.16, 1, .3, 1) both; animation-delay: calc(var(--i, 0) * 45ms); }
+  .strip { transform-origin: left; animation: stretch 1s cubic-bezier(.16, 1, .3, 1) both; }
+  .peak, .row-value { animation: fade-in .5s .55s both; }
+  .reveal { transition: opacity .6s, transform .6s; }
+  .reveal:not(.in) { opacity: 0; transform: translateY(20px); }
+  .reveal:not(.in) .col-stack, .reveal:not(.in) .row-stack, .reveal:not(.in) .strip, .reveal:not(.in) .peak, .reveal:not(.in) .row-value { animation-play-state: paused; }
+  .dash .card { transition: box-shadow .25s, opacity .6s, transform .6s; }
+  .dash .card:hover { box-shadow: 0 12px 28px rgba(13, 22, 32, .1); }
+  .tilt { position: relative; transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .25s ease-out, box-shadow .25s ease-out, opacity .6s; }
+  .tilt:hover { box-shadow: 0 14px 30px rgba(13, 22, 32, .14); }
+  .tilt::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(63, 142, 230, .16), transparent 55%); opacity: 0; transition: opacity .25s; pointer-events: none; }
+  .tilt:hover::after { opacity: 1; }
+  .tiles .step { position: relative; }
+  .tiles .step::before { content: ""; position: absolute; top: 50%; right: -15px; width: 16px; height: 2px; background: repeating-linear-gradient(90deg, var(--DM) 0 6px, transparent 6px 14px); background-size: 28px 2px; animation: flow 1s linear 5; }
+  .paper-row > button { transition: background .15s, transform .15s; }
+  .paper-row > button:hover { transform: translateX(3px); }
+  .btn, .plain { transition: transform .15s, background .15s; }
+  .btn:hover, .plain:hover { transform: translateY(-1px); }
+  @keyframes drift { to { transform: translate3d(90px, 50px, 0) scale(1.18); } }
+  @keyframes ping { to { transform: scale(3.2); opacity: 0; } }
+  @keyframes fade-up { from { opacity: 0; transform: translateY(14px); } }
+  @keyframes fade-in { from { opacity: 0; } }
+  @keyframes rise { from { transform: scaleY(0); } }
+  @keyframes stretch { from { transform: scaleX(0); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes blink { 50% { opacity: .25; } }
+  @keyframes flow { to { background-position: 28px 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    #still { display: none; }
+  }
+  .still, .still *, .still *::before, .still *::after { animation: none !important; }
+  @media (forced-colors: active) { #scene { background: #0b1622; forced-color-adjust: none; } }
+  @media print { .reveal { opacity: 1; transform: none; } .hero-scene { display: none; } }
+
   [hidden] { display: none !important; }
   button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
   nav button:focus-visible { outline-color: #ffffff; }
@@ -193,11 +288,15 @@
     .callout { grid-template-columns: minmax(0, 1fr); }
     .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .wide-7, .wide-6, .wide-5 { grid-column: span 12; }
+    .hero { grid-template-columns: minmax(0, 1fr); }
+    #scene { height: 320px; }
+    .tiles .step::before { display: none; }
     .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (max-width: 640px) {
     h1 { font-size: 26px; }
+    .hero-title { font-size: 27px; }
     nav button { padding: 8px 9px; font-size: 13px; }
     .filterbar label { flex: 1 1 calc(50% - 6px); }
     .filterbar .note { text-align: left; padding-bottom: 0; }
@@ -226,7 +325,7 @@
 <header>
   <div class="bar">
     <h1>The Research Roundup</h1>
-    <p class="lede">New economics research, read and ranked each month for a markets research team.</p>
+    <p class="lede">An AI research assistant for a markets team, with a monthly newsletter of new economics papers.</p>
     <nav aria-label="Pages">
       <button type="button" data-page="overview">Overview</button>
       <button type="button" data-page="latest">Latest issue</button>
@@ -234,10 +333,33 @@
       <button type="button" data-page="archive">Archive</button>
     </nav>
   </div>
+  <div class="hero" id="hero" hidden>
+    <div>
+      <p class="status"><span class="pulse" id="pulse" aria-hidden="true" hidden></span><span id="ovNote" role="status">Loading the papers.</span></p>
+      <h2 class="hero-title" id="heroTitle">Your economics research assistant.</h2>
+      <p class="hero-sub" id="heroSub"></p>
+      <form class="ask" id="askForm">
+        <label class="sr" for="askInput">Ask the Research Roundup</label>
+        <input id="askInput" type="text" maxlength="200" autocomplete="off" placeholder="Ask about a topic, a country or a central bank">
+        <button type="submit" class="ask-send" id="askSend" aria-label="Ask" disabled>&#8594;</button>
+      </form>
+      <div class="prompts" id="prompts"></div>
+      <p class="ask-note">This box runs no AI model. It searches the summaries I saved, in your browser, so nothing new is written when you ask. Those summaries are AI-written from abstracts, so check the paper.</p>
+      <p class="sr" id="askStatus" role="status"></p>
+    </div>
+    <div class="hero-scene">
+      <canvas id="scene" role="img" tabindex="0" aria-label="A turning 3D map of every paper. Papers on the 12 biggest topics cluster around them, and the rest sit on an outer shell. Arrow keys turn it. The Explore page lists the same papers."></canvas>
+      <p class="scene-key">Each dot is a paper. Those on the 12 biggest topics cluster around them, and the rest sit on the outer shell. Bigger dots scored higher, and ringed dots made an issue. Drag to turn it, or click a dot or a topic. From a keyboard, the arrow keys turn it and Explore lists every paper.</p>
+      <p class="scene-key"><button type="button" class="prompt" id="still" aria-pressed="false">Pause motion</button></p>
+    </div>
+  </div>
 </header>
 <main>
-  <section id="overview" class="stack-gap" hidden>
-    <p class="note" id="ovNote" role="status">Loading the papers.</p>
+  <section id="page-overview" class="stack-gap" hidden>
+    <div class="card" id="chat" hidden>
+      <div class="chat-head"><h3>Your questions</h3><button type="button" class="plain" id="chatClear">Start over</button></div>
+      <div class="thread" id="thread"></div>
+    </div>
     <div class="card callout" id="callout" hidden></div>
     <div class="card filterbar" id="ovFilters" hidden>
       <label>Month<select id="ovMonth"></select></label>
@@ -256,14 +378,14 @@
     </div>
   </section>
 
-  <section id="latest" hidden>
+  <section id="page-latest" hidden>
     <div class="frame-wrap">
       <p class="note" id="latestNote"></p>
       <iframe id="latestFrame" title="The latest newsletter"></iframe>
     </div>
   </section>
 
-  <section id="explore" class="card" hidden>
+  <section id="page-explore" class="card" hidden>
     <h2 id="exploreTitle" tabindex="-1">Explore papers</h2>
     <p class="tags"><span class="tag tag-EM">EM</span>mainly about emerging or developing economies. <span class="tag tag-DM">DM</span>mainly about advanced economies. <span class="tag tag-Transversal">Transversal</span>global, many regions, or theory and methods not tied to one group.</p>
     <label class="search">Search titles, authors, summaries and topics<input id="fSearch" type="search"></label>
@@ -294,7 +416,7 @@
     <button type="button" class="plain more" id="more" hidden>Show more papers</button>
   </section>
 
-  <section id="archive" class="card" hidden>
+  <section id="page-archive" class="card" hidden>
     <h2>Past issues</h2>
     <div class="issue-grid" id="issues"></div>
     <h2>Source coverage</h2>
@@ -341,12 +463,59 @@
   const FEWEST_FOR_A_TOPIC = 3;
   const FILTERS = ['fIssue', 'fTag', 'fGroup', 'fSource', 'fTopic', 'fScore', 'fFrom', 'fTo', 'fOrder', 'fSearch'];
   const CHIP_NAMES = { fSearch: 'Search', fIssue: 'Issue', fTag: 'Tag', fGroup: 'Source type', fSource: 'Source', fTopic: 'Topic', fScore: 'Score', fFrom: 'From', fTo: 'To' };
+  const SCENE_TOPICS = 12;
+  const SPOKES = 6;
+  const SPRITE = 64;
+  const CAMERA = 4.4;
+  const RING_STEPS = 48;
+  const SPIN = 0.00012;
+  const OPEN_MS = 1400;
+  const COUNT_MS = 1100;
+  const THINK_MS = 550;
+  const WORD_MS = 28;
+  const TYPING_MS = 1300;
+  const TILT_DEGREES = 7;
+  const ANSWER_SIZE = 5;
+  const STOP_WORDS = new Set(('a about all also am an and any anything are article articles as at be been best but by can could did do does find for from get '
+    + 'give good got had has have help how i if important in into is issue issues it its just know like look looking many me more most much must my need new newest of on one or '
+    + 'our out paper papers please publication publications read recent recently research say see should show so some something study studies tell than that the '
+    + 'their them there these they this those to understand up us was we were what whats when where which who why will with would you your').split(' '));
+  const PLACES = '(?:markets?|economy|economies|countries|country|nations?)';
+  const EM_WORDS = new RegExp('\\b(?:emerging|developing|frontier|low[- ]income) ' + PLACES + '\\b|\\bem\\b');
+  const DM_WORDS = new RegExp('\\b(?:advanced|developed|rich|high[- ]income) ' + PLACES + '\\b|\\bdm\\b');
+  const SAME_WORD = { labor: 'labour', behavioral: 'behavioural', artificial: 'ai', crises: 'crisis' };
+  const STILL_KEY = 'roundup-still';
+  const SOURCE_WORDS = {
+    ecb: 'European Central Bank',
+    boe: 'Bank of England',
+    boj: 'Bank of Japan',
+    bundesbank: 'Deutsche Bundesbank',
+    riksbank: 'Sveriges Riksbank',
+    aer: 'American Economic Review',
+    qje: 'Quarterly Journal of Economics',
+    jpe: 'Journal of Political Economy',
+    restud: 'Review of Economic Studies',
+  };
+  const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const canHover = window.matchMedia('(hover: hover)').matches;
   const CSV_COLUMNS = ['title', 'authors', 'source', 'published', 'first_seen', 'market_focus', 'tag_reason', 'relevance', 'topics', 'summary', 'url'];
   let data = null;
   let shown = PAGE_SIZE;
   let uses = {};
+  let scene = null;
+  let searchIndex = null;
+  let pinned = null;
+  let sourceNames = [];
   const groupOf = new Map();
   const open = new Set();
+  const seen = !calm && 'IntersectionObserver' in window
+    ? new IntersectionObserver((entries, watcher) => entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('in');
+      watcher.unobserve(entry.target);
+      if (entry.target.id === 'tiles') countTiles();
+    }), { threshold: 0.12 })
+    : null;
 
   function el(tag, attrs, ...kids) {
     const node = document.createElement(tag);
@@ -467,12 +636,12 @@
       el('div', { class: 'ticks', 'aria-hidden': 'true' }, ticks.map((value) => el('span', { style: at(value), text: count(value) }))),
       el('div', { class: 'plot' },
         el('div', { class: 'rules', 'aria-hidden': 'true' }, ticks.map((value) => el('i', { style: at(value) }))),
-        rows.map((row) => {
+        rows.map((row, place) => {
           const parts = row.parts.filter((part) => part.value);
           const column = el('button', { type: 'button', class: 'col', 'aria-label': row.spoken, onclick: row.open },
             el('span', { class: 'col-area' },
               row.total === most ? el('span', { class: 'peak', text: count(row.total) }) : null,
-              el('span', { class: 'col-stack', style: 'height:' + row.total / top * 100 + '%' }, parts.map((part) => seg(part.key, part.value)))),
+              el('span', { class: 'col-stack', style: 'height:' + row.total / top * 100 + '%;--i:' + place }, parts.map((part) => seg(part.key, part.value)))),
             el('span', { class: 'x-label', text: row.label }));
           bindTip(column, row.title, row.parts);
           return column;
@@ -481,12 +650,12 @@
 
   function barChart(rows, name) {
     const most = Math.max(1, ...rows.map((row) => row.total));
-    return el('div', { role: 'group', 'aria-label': name }, rows.map((row) => {
+    return el('div', { role: 'group', 'aria-label': name }, rows.map((row, place) => {
       const parts = row.parts.filter((part) => part.value);
       const inner = [
         el('span', { text: row.label }),
         el('span', { class: 'row-line' },
-          el('span', { class: 'row-stack', style: 'width:calc((100% - 40px) * ' + row.total / most + ')' }, parts.map((part) => seg(part.key, part.value))),
+          el('span', { class: 'row-stack', style: 'width:calc((100% - 40px) * ' + row.total / most + ');--i:' + place }, parts.map((part) => seg(part.key, part.value))),
           el('span', { class: 'row-value', text: count(row.total) }))];
       const bar = row.open
         ? el('button', { type: 'button', class: 'row-bar', 'aria-label': row.spoken, onclick: row.open }, inner)
@@ -519,9 +688,11 @@
     return { fTag: $('ovTag').value, fGroup: $('ovGroup').value, fFrom: month && month + '-01', fTo: month && lastDay(month) };
   }
 
-  function openExplore(values) {
+  // A question's answer goes across as the exact papers, because Explore's search matches text differently.
+  function openExplore(values, answer) {
     FILTERS.forEach((id) => { $(id).value = id === 'fOrder' ? 'score' : ''; });
     Object.entries(values).forEach(([id, value]) => { $(id).value = value; });
+    pinned = answer ? { label: answer.label, ids: new Set(answer.papers.map((paper) => paper.id)) } : null;
     shown = PAGE_SIZE;
     render();
     location.hash = 'explore';
@@ -532,7 +703,11 @@
 
   function tile(label, value, sub, kind) {
     return el('div', { class: 'card tile ' + (kind || '') },
-      el('p', { class: 'tile-label', text: label }), el('p', { class: 'tile-value', text: value }), el('p', { class: 'tile-sub', text: sub }));
+      el('p', { class: 'tile-label', text: label }), el('p', { class: 'tile-value', 'data-count': value, text: count(value) }), el('p', { class: 'tile-sub', text: sub }));
+  }
+
+  function countTiles() {
+    $('tiles').querySelectorAll('[data-count]').forEach((node) => countUp(node, Number(node.dataset.count)));
   }
 
   function renderTiles(papers) {
@@ -540,10 +715,12 @@
     const editor = papers.filter((paper) => paper.relevance >= EDITOR_SCORE).length;
     const chosen = papers.filter((paper) => paper.issues.length).length;
     $('tiles').replaceChildren(
-      tile('Papers read', count(papers.length), days.length ? dayLabel(days[0]) + ' to ' + dayLabel(days[days.length - 1]) : 'None in this view', 'hero'),
-      tile('Scored 9 or 10', count(editor), 'these normally go to the editor'),
-      tile('Chosen for an issue', count(chosen), '5 to 8 papers each month'),
+      tile('Papers scored', papers.length, days.length ? dayLabel(days[0]) + ' to ' + dayLabel(days[days.length - 1]) : 'None in this view', 'hero step'),
+      tile('Scored 9 or 10', editor, 'these normally go on to be ranked', 'step'),
+      tile('Chosen for an issue', chosen, '5 to 8 papers each month'),
       el('div', { class: 'card tile' }, el('p', { class: 'tile-label', text: 'Tag mix' }), tagMix(tagCounts(papers))));
+    [...$('tiles').children].forEach(tilt);
+    if (!seen || $('tiles').classList.contains('in')) countTiles();
   }
 
   function renderWeeks(papers) {
@@ -587,7 +764,7 @@
       });
     }
     fillChart('chartScores', 'Score out of 10',
-      'Papers scoring 9 or 10 normally go to an editor, who reads them together and ranks them. A high score earns a paper a look, not a place.',
+      'Papers scoring 9 or 10 normally go to a stronger AI model, which reads them in groups of 40 and ranks them. A high score earns a paper a look, not a place.',
       [legend([['strong', '9 or 10'], ['quiet', 'Below 9']]), columnChart(rows, 'Number of papers at each score')],
       plainTable(['Score', 'Papers'], rows.map((row) => [row.label, row.total])));
   }
@@ -641,11 +818,717 @@
     $('ovEmpty').hidden = papers.length > 0;
     $('charts').hidden = !papers.length;
     renderTiles(papers);
+    lightView();
     if (!papers.length) return;
     renderWeeks(papers);
     renderScores(papers);
     renderTopics(papers);
     renderSources(papers);
+  }
+
+  // The final value goes in first, so the number is right even if no frame ever runs.
+  function countUp(node, target) {
+    node.textContent = count(target);
+    if (calm || !target) return;
+    const start = performance.now();
+    const step = (now) => {
+      const progress = Math.min(1, (now - start) / COUNT_MS);
+      node.textContent = count(Math.round(target * (1 - (1 - progress) ** 3)));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  function reveal(nodes) {
+    if (!seen) return;
+    nodes.forEach((node) => { node.classList.add('reveal'); seen.observe(node); });
+  }
+
+  function tilt(node) {
+    if (calm || !canHover) return;
+    node.classList.add('tilt');
+    node.addEventListener('pointermove', (event) => {
+      const box = node.getBoundingClientRect();
+      const across = (event.clientX - box.left) / box.width;
+      const down = (event.clientY - box.top) / box.height;
+      node.style.setProperty('--ry', (across - 0.5) * TILT_DEGREES + 'deg');
+      node.style.setProperty('--rx', (0.5 - down) * TILT_DEGREES + 'deg');
+      node.style.setProperty('--gx', across * 100 + '%');
+      node.style.setProperty('--gy', down * 100 + '%');
+    });
+    node.addEventListener('pointerleave', () => {
+      node.style.setProperty('--ry', '0deg');
+      node.style.setProperty('--rx', '0deg');
+    });
+  }
+
+  // The assistant. The site has no server and the AI key can't go in a public page, so no model runs here.
+  // It searches what the agent already saved, and every word about a paper was written when the agent ran.
+  const wordsIn = (text) => (text || '').toLowerCase().normalize('NFKD').replace(/\p{M}/gu, '').match(/[a-z0-9]+/g) || [];
+  const saysUS = (text) => /\bU\.S\.|\bUS\b|\bUSA\b/.test(text) || /\bunited states\b/i.test(text);
+
+  function stem(word) {
+    const fixed = SAME_WORD[word] || word;
+    if (fixed === 'news') return fixed;
+    if (fixed.length > 4 && fixed.endsWith('ies')) return fixed.slice(0, -3) + 'y';
+    if (fixed.endsWith('xes')) return fixed.slice(0, -2);
+    return fixed.length > 3 && /[^sui]s$/.test(fixed) ? fixed.slice(0, -1) : fixed;
+  }
+
+  function buildIndex() {
+    const papersWith = new Map();
+    const docs = new Map();
+    let totalLength = 0;
+    data.papers.forEach((paper) => {
+      const weights = new Map();
+      const add = (text, weight) => wordsIn(text).forEach((word) => {
+        const key = stem(word);
+        weights.set(key, (weights.get(key) || 0) + weight);
+      });
+      add(paper.title, 3);
+      add(paper.topics.join(' '), 3);
+      add(paper.authors, 2);
+      add(paper.source, 1);
+      add(paper.summary, 1);
+      add(paper.why_it_matters, 1);
+      add(paper.tag_reason, 1);
+      // Lower case turns US into the word us, so the country gets its own search word.
+      if (saysUS([paper.title, paper.summary, paper.tag_reason].join(' '))) weights.set('usa', 3);
+      const length = [...weights.values()].reduce((sum, weight) => sum + weight, 0);
+      totalLength += length;
+      weights.forEach((_, word) => papersWith.set(word, (papersWith.get(word) || 0) + 1));
+      docs.set(paper.id, { weights, length });
+    });
+    return { docs, papersWith, average: totalLength / data.papers.length };
+  }
+
+  function library() {
+    if (!searchIndex) searchIndex = buildIndex();
+    return searchIndex;
+  }
+
+  // BM25: a rare word counts for more, and a long text doesn't win just by being long.
+  function matchScore(paper, terms, needed) {
+    const index = library();
+    const doc = index.docs.get(paper.id);
+    let total = 0;
+    let hits = 0;
+    terms.forEach((term) => {
+      const weight = doc.weights.get(term);
+      if (!weight) return;
+      hits += 1;
+      const papers = index.papersWith.get(term);
+      const rarity = Math.log(1 + (data.papers.length - papers + 0.5) / (papers + 0.5));
+      total += rarity * (weight * 2.2) / (weight + 1.2 * (0.25 + 0.75 * doc.length / index.average));
+    });
+    return hits >= needed ? total * (hits / terms.length) + paper.relevance * 0.05 : 0;
+  }
+
+  function sourcesIn(plain) {
+    const spelled = (name) => ' ' + wordsIn(name).join(' ') + ' ';
+    const exact = sourceNames.find((name) => plain.includes(spelled(name)));
+    if (exact) return { names: [exact], label: exact, phrase: spelled(exact) };
+    for (const name of sourceNames) {
+      const city = name.split(' Fed')[0];
+      if (city !== name) {
+        const place = wordsIn(city).join(' ');
+        const phrase = [' federal reserve bank of ' + place + ' ', ' ' + place + ' fed '].find((one) => plain.includes(one));
+        if (phrase) return { names: sourceNames.filter((other) => other.startsWith(city + ' Fed')), label: 'the ' + city + ' Fed', phrase };
+      }
+    }
+    // The Fed is the Board and 12 regional banks, so it can't be one source.
+    const fed = [' federal reserve ', ' the fed ', ' fed '].find((one) => plain.includes(one));
+    if (fed) return { names: sourceNames.filter((name) => /\bFed\b|Federal Reserve/.test(name)), label: 'the Fed and its regional banks', phrase: fed };
+    const short = Object.keys(SOURCE_WORDS).find((word) => plain.includes(' ' + word + ' ') && sourceNames.includes(SOURCE_WORDS[word]));
+    return short ? { names: [SOURCE_WORDS[short]], label: SOURCE_WORDS[short], phrase: ' ' + short + ' ' } : null;
+  }
+
+  function monthIn(question, lower) {
+    const months = [...new Set(data.papers.map((paper) => paper.first_seen.slice(0, 7)))].sort().reverse();
+    const year = (lower.match(/\b20\d\d\b/) || [])[0];
+    return months.find((month) => {
+      if (year && !month.startsWith(year)) return false;
+      const name = monthLabel(month).split(' ')[0];
+      // May and March are ordinary words too, so they need a capital or a word like in before them.
+      if (name === 'May' || name === 'March') return new RegExp('\\b' + name + '\\b').test(question) || new RegExp('\\b(in|from|since|of|during) ' + name.toLowerCase() + '\\b').test(lower);
+      return new RegExp('\\b' + name.toLowerCase() + '\\b').test(lower);
+    }) || null;
+  }
+
+  function readQuestion(question) {
+    let lower = question.toLowerCase();
+    const strip = (pattern) => {
+      const found = pattern.test(lower);
+      if (found) lower = lower.replace(pattern, ' ');
+      return found;
+    };
+    const plan = { tag: null, month: monthIn(question, lower) };
+    if (strip(EM_WORDS)) plan.tag = 'EM';
+    else if (strip(DM_WORDS)) plan.tag = 'DM';
+    else if (strip(/\btransversal\b/)) plan.tag = 'Transversal';
+    plan.issue = strip(/\b(?:latest|last|this|newest|current|recent)(?: month'?s?)? issue\b|\bnewsletters?\b|^\W*(?:the )?issue\W*$/);
+    if (plan.month) {
+      const word = monthLabel(plan.month).split(' ')[0].toLowerCase();
+      if (strip(new RegExp('\\b' + word + "(?:'s)?(?: 20\\d\\d)? issue\\b"))) plan.issue = true;
+      strip(new RegExp('\\b' + word + '\\b'));
+    }
+    strip(/\b20\d\d\b/);
+    if (strip(/\b(?:this|last|latest|past) month\b/) && !plan.month && data.issues[0]) plan.month = data.issues[0].month;
+    plan.best = strip(/\b(?:best|top|strongest|most important|must[- ]read)(?: \d+)? (?:papers?|research|studies|reads?|work)\b|\btop \d+\b|\bwhat should i read(?: first| next)?\b|\bread first\b|\bstart with\b|\bwhere (?:do|should) i (?:start|begin)\b/);
+    plan.newest = strip(/\bwhat'?s new\b|\b(?:latest|newest|most recent|recently|recent)\b|\bnew (?:papers?|research|work|studies)\b/);
+    const inUS = saysUS(question);
+    strip(/\bunited states\b/);
+    let plain = ' ' + wordsIn(lower).join(' ') + ' ';
+    plan.sources = sourcesIn(plain);
+    if (plan.sources) plain = plain.replace(plan.sources.phrase, ' ');
+    plan.words = [...new Set(plain.split(' '))].filter((word) => word.length > 1 && !STOP_WORDS.has(word));
+    plan.terms = [...new Set(plan.words.map(stem))];
+    if (inUS) {
+      plan.words.push('US');
+      plan.terms.push('usa');
+    }
+    return plan;
+  }
+
+  function issueAnswer(month) {
+    const issue = month ? data.issues.find((one) => one.month === month) : data.issues[0];
+    if (!issue) return null;
+    const papers = data.papers.filter((paper) => paper.issues.includes(issue.month));
+    const note = issue.overview ? ' ' + issue.overview : '';
+    return { text: 'The ' + monthLabel(issue.month) + ' issue has ' + plural(papers.length, 'paper') + ', highest score first.' + note, papers, searched: true };
+  }
+
+  function searchAnswer(plan) {
+    const pool = data.papers.filter((paper) => (
+      (!plan.tag || paper.market_focus === plan.tag)
+      && (!plan.sources || plan.sources.names.includes(paper.source))
+      && (!plan.month || paper.first_seen.startsWith(plan.month))
+      && (!plan.within || paper.issues.includes(plan.within))));
+    const matching = (needed) => pool.map((paper) => [paper, matchScore(paper, plan.terms, needed)]).filter(([, score]) => score)
+      .sort((a, b) => b[1] - a[1]).map(([paper]) => paper);
+    let papers = plan.terms.length ? matching(plan.terms.length) : pool;
+    const partial = !papers.length && plan.terms.length > 1;
+    if (partial) papers = matching(1);
+    const asked = [
+      plan.words.length ? 'matching ' + plan.words.join(' ') : null,
+      plan.tag ? 'tagged ' + plan.tag : null,
+      plan.sources ? 'from ' + plan.sources.label : null,
+      plan.within ? 'in the ' + monthLabel(plan.within) + ' issue' : null,
+      plan.month ? 'first seen in ' + monthLabel(plan.month) : null,
+    ].filter(Boolean).join(' ');
+    if (!papers.length) {
+      const filtered = plan.tag || plan.sources || plan.within || plan.month;
+      return { text: (filtered ? 'I have no papers ' + asked + '.' : "I couldn't find that.") + ' I only answer from the ' + count(data.papers.length) + ' papers I have scored, so I would rather say so than guess. Try a topic, a country or a central bank.', papers: [], searched: true };
+    }
+    if (partial) {
+      const has = (word) => pool.some((paper) => library().docs.get(paper.id).weights.has(word === 'US' ? 'usa' : stem(word)));
+      const absent = plan.words.filter((word) => !has(word));
+      return { text: (absent.length ? 'No paper mentions ' + absent.join(' or ') + ', so' : 'No paper covers all of that, so') + ' this is the closest I have.', papers, searched: true };
+    }
+    if (plan.newest) papers = [...papers].sort((a, b) => b.first_seen.localeCompare(a.first_seen));
+    else if (plan.best) papers = [...papers].sort((a, b) => b.relevance - a.relevance);
+    if (plan.newest && !asked) return { text: 'These are the newest papers I have scored.', papers, searched: true };
+    const order = plan.newest ? 'newest' : plan.terms.length && !plan.best ? 'closest' : 'highest scoring';
+    const shown = papers.length > ANSWER_SIZE ? ' These are the ' + ANSWER_SIZE + ' ' + order + '.' : '';
+    return { text: 'I found ' + plural(papers.length, 'paper') + (asked ? ' ' + asked : '') + '.' + shown, papers, searched: true };
+  }
+
+  const sourcesRead = () => data.health.filter((row) => row.status === 'working' || row.status === 'fallback');
+
+  function aboutMe() {
+    return { text: "I'm the Research Roundup agent. I'm set to check " + sourcesRead().length + ' sources every week, summarise each new paper from its title and abstract, score it for a markets desk and tag it EM, DM or Transversal. Each month I build a newsletter of 5 to 8 papers. This box runs no AI model. It searches the summaries I saved, so ask me about a topic, a country, a central bank or an issue.', papers: [] };
+  }
+
+  function aboutEngine() {
+    return { text: 'The AI work happens when my jobs run on GitHub: models on Groq summarise, score and tag each paper. This box runs no AI model. It is a word search over the summaries those jobs saved, running in your browser, so nothing new is written when you ask.', papers: [] };
+  }
+
+  function aboutChoosing() {
+    return { text: 'Every paper gets a score out of 10. Papers scoring 9 or 10 normally go to a stronger AI model, which reads them in groups of 40 and ranks them. Plain code then takes the best of each tag and the rest of the ranking, with at most 2 papers from one source, for 5 to 8 papers.', papers: [] };
+  }
+
+  function aboutTrust() {
+    return { text: "No person has measured my tags yet, so I can't give you a true accuracy figure. Three blind AI readers matched them on 70 of 80 papers. A second panel with clearer rules matched on 58 of 60 new papers, but most of those tags were not scored again, so that is not a before and after. All of this is agreement between AIs, not accuracy. Each summary comes from the title and abstract only, so check the paper before relying on a result.", papers: [] };
+  }
+
+  function aboutSources() {
+    const read = sourcesRead();
+    const groups = Object.entries(GROUPS).map(([key, label]) => {
+      const rows = data.health.filter((row) => row.source_group === key);
+      return read.filter((row) => row.source_group === key).length + ' of ' + rows.length + ' ' + label.replace(/^(Research|Journals|Regional)/, (word) => word.toLowerCase());
+    }).join(', ');
+    const missing = data.health.filter((row) => !read.includes(row)).map((row) => row.source);
+    return { text: 'At my last run I read ' + read.length + ' of ' + data.health.length + ' sources: ' + groups + '.' + (missing.length ? ' Not read: ' + missing.join(', ') + '. The Archive page says why.' : ''), papers: [] };
+  }
+
+  function aboutCounts() {
+    const counts = tagCounts(data.papers);
+    const high = data.papers.filter((paper) => paper.relevance >= EDITOR_SCORE).length;
+    const chosen = data.papers.filter((paper) => paper.issues.length).length;
+    return { text: "I've scored the abstracts of " + count(data.papers.length) + ' papers: ' + counts.DM + ' DM, ' + counts.Transversal + ' Transversal and ' + counts.EM + ' EM. ' + high + ' scored 9 or 10, and ' + chosen + ' made an issue.', papers: [] };
+  }
+
+  // These only fire on questions about the assistant, so a question about firms or central banks still gets searched.
+  const ABOUT = [
+    [/\b(are you|is this|is it) (a |an )?(real |live |actual )?(ai|bot|person|human|model|chatgpt|gpt)\b|\b(what|which) (ai|model|llm)\b|\bdo you use (ai|a model)\b|\bhow do you (work|answer)\b|\bhow does this work\b/, aboutEngine],
+    [/^\W*help\W*$|\b(who|what) are you\b|\bwhat can you do\b/, aboutMe],
+    [/\bhow (do|did) you (choose|pick|select|rank)\b|\bhow (are|were|is) (the )?(papers?|issues?)\b.*\b(chosen|picked|selected|ranked)\b|\bwhy did you (choose|pick)\b/, aboutChoosing],
+    [/\b(trust|rely on) (you\b|your\b|this\b|the (tags?|scores?|summar))|\byour (tags?|scores?|summar\w+)\b.*\b(accura\w*|right|wrong|good|reliable)\b|\bhow accurate (are|is) (you|your|the tags?)\b|\bare (you|your tags?) (accurate|reliable|right|wrong)\b/, aboutTrust],
+    [/\b(which|what|how many) sources\b|\byour (sources|coverage)\b|^\W*(what )?do you (read|cover)\W*$/, aboutSources],
+    [/\bhow many (papers )?(have|did|do) you\b|^\W*how many papers\W*$|\bhow much have you read\b/, aboutCounts],
+  ];
+
+  function answerTo(question) {
+    const lower = question.toLowerCase();
+    const about = ABOUT.find(([test]) => test.test(lower));
+    if (about) return about[1]();
+    if (/^(hi|hello|hey|thanks|thank you)\b/.test(lower)) return { text: 'Hello. ' + aboutMe().text, papers: [] };
+    const plan = readQuestion(question);
+    const nothingElse = !plan.terms.length && !plan.tag && !plan.sources;
+    if (plan.issue || (plan.best && nothingElse && !plan.month)) {
+      const answer = nothingElse ? issueAnswer(plan.month) : null;
+      if (answer) return answer;
+      const issue = plan.month ? data.issues.find((one) => one.month === plan.month) : data.issues[0];
+      if (issue && !nothingElse) {
+        plan.within = issue.month;
+        plan.month = null;
+      }
+    }
+    return nothingElse && !plan.month && !plan.newest ? aboutMe() : searchAnswer(plan);
+  }
+
+  function similarTo(paper) {
+    const terms = [...new Set([...paper.topics.flatMap(wordsIn), ...wordsIn(paper.title)])].filter((word) => !STOP_WORDS.has(word)).map(stem);
+    const papers = data.papers.filter((other) => other.id !== paper.id)
+      .map((other) => [other, matchScore(other, terms, 2)]).filter(([, score]) => score)
+      .sort((a, b) => b[1] - a[1]).map(([other]) => other);
+    return { text: papers.length ? 'These are closest to it, matched on its topics and title.' : "I can't find a paper close to that one.", papers, searched: true };
+  }
+
+  function openAnswer(label, papers) {
+    openExplore({}, { label, papers });
+  }
+
+  function answerCard(paper, index, full) {
+    return el('article', { class: full ? 'answer full' : 'answer', style: '--i:' + index },
+      el('div', { class: 'answer-top' }, el('span', { class: 'tag tag-' + paper.market_focus, text: paper.market_focus }), el('span', { text: 'Score ' + paper.relevance + ' of 10' })),
+      el('h4', {}, el('a', { href: paper.url, target: '_blank', rel: 'noopener', text: paper.title })),
+      el('p', { class: 'answer-meta', text: paper.source + ' · ' + dayLabel(paper.first_seen) }),
+      el('p', { class: 'snippet', text: paper.summary }),
+      el('div', { class: 'actions' },
+        el('button', { type: 'button', class: 'link-button', text: 'More like this', onclick: () => say('More like "' + paper.title + '"', () => similarTo(paper)) }),
+        el('button', {
+          type: 'button',
+          class: 'link-button',
+          text: 'Open in Explore',
+          onclick: () => {
+            open.add(paper.id);
+            openAnswer(paper.title, [paper]);
+          },
+        })));
+  }
+
+  function typeOut(node, text, done) {
+    const words = text.split(' ');
+    if (calm) { node.textContent = text; done(); return; }
+    const pause = Math.min(WORD_MS, TYPING_MS / words.length);
+    let shown = 0;
+    const next = () => {
+      shown += 1;
+      node.textContent = words.slice(0, shown).join(' ');
+      if (shown < words.length) window.setTimeout(next, pause); else done();
+    };
+    next();
+  }
+
+  function keepInView(node) {
+    node.scrollIntoView({ block: 'nearest', behavior: calm ? 'auto' : 'smooth' });
+  }
+
+  function say(question, reply, moveFocus) {
+    if (!data) return;
+    const answer = reply();
+    $('chat').hidden = false;
+    const avatar = el('span', { class: 'avatar busy', 'aria-hidden': 'true' });
+    const body = el('div', {});
+    if (answer.searched) body.append(el('p', { class: 'thinking' }, el('span', { class: 'dots', 'aria-hidden': 'true' }, el('i'), el('i'), el('i')), 'Searching ' + count(data.papers.length) + ' summaries'));
+    const message = el('div', { class: 'msg-agent', tabindex: '-1' }, avatar, body);
+    $('thread').append(el('div', { class: 'msg-you', text: question }), message);
+    if (moveFocus) message.focus({ preventScroll: true });
+    keepInView(message);
+    $('askStatus').textContent = '';
+    if (answer.papers.length && scene) {
+      scene.light(answer.papers);
+      scene.focus(answer.papers[0]);
+    }
+    window.setTimeout(() => {
+      const line = el('p', { class: 'msg-text', 'aria-hidden': 'true' });
+      const cards = answer.papers.slice(0, ANSWER_SIZE);
+      body.replaceChildren(line);
+      $('askStatus').textContent = answer.text + (cards.length ? ' Showing ' + plural(cards.length, 'paper') + ' below.' : '');
+      typeOut(line, answer.text, () => {
+        line.removeAttribute('aria-hidden');
+        avatar.classList.remove('busy');
+        if (cards.length) body.append(el('div', { class: 'answers' }, cards.map((paper, index) => answerCard(paper, index, answer.papers.length === 1))));
+        if (answer.papers.length > ANSWER_SIZE) body.append(el('div', { class: 'actions' }, el('button', { type: 'button', class: 'plain', text: 'See all ' + count(answer.papers.length) + ' in Explore', onclick: () => openAnswer(question, answer.papers) })));
+        keepInView(message);
+      });
+    }, calm || !answer.searched ? 0 : THINK_MS);
+  }
+
+  const askAbout = (paper) => say('Tell me about "' + paper.title + '"', () => ({ text: 'Here is what I saved on this paper.', papers: [paper] }));
+
+  function renderHero() {
+    const lastRun = data.health[0];
+    $('ovNote').textContent = lastRun ? sourcesRead().length + ' of ' + data.health.length + ' sources read at my last run, on ' + dayLabel(lastRun.run_at) : '';
+    $('pulse').hidden = false;
+    const number = el('span', { text: count(data.papers.length) });
+    $('heroTitle').replaceChildren("I've read the abstracts of ", number, ' papers. Ask me about them.');
+    countUp(number, data.papers.length);
+    $('heroSub').textContent = "I'm an AI research agent, set to check economics sources every week, then score and tag new papers for a markets desk.";
+    const topTopic = Object.keys(uses).sort((a, b) => uses[b] - uses[a])[0];
+    const prompts = ['What should I read first?', topTopic ? 'Best papers on ' + topicLabel(topTopic).toLowerCase() : null, 'Latest from the ECB', 'Emerging markets and inflation', 'How do you choose papers?', 'Can I trust your tags?'].filter(Boolean);
+    $('prompts').replaceChildren(...prompts.map((prompt) => el('button', { type: 'button', class: 'prompt', text: prompt, onclick: () => say(prompt, () => answerTo(prompt)) })));
+  }
+
+  function setStill(value) {
+    document.documentElement.classList.toggle('still', value);
+    $('still').textContent = value ? 'Play motion' : 'Pause motion';
+    $('still').setAttribute('aria-pressed', String(value));
+    if (scene) scene.pause(value);
+  }
+
+  function savedStill() {
+    try { return localStorage.getItem(STILL_KEY) === '1'; } catch { return false; }
+  }
+
+  function saveStill(value) {
+    try { localStorage.setItem(STILL_KEY, value ? '1' : ''); } catch { /* A blocked store only loses the choice. */ }
+  }
+
+  function lightView() {
+    const view = viewedPapers();
+    if (scene) scene.light(view.length === data.papers.length ? null : view);
+  }
+
+  function seeded(text) {
+    // Each paper's random numbers come from its id, so it only moves when the data does.
+    let state = 2166136261;
+    [...text].forEach((letter) => { state = Math.imul(state ^ letter.codePointAt(0), 16777619); });
+    return () => {
+      state = (state + 0x6D2B79F5) | 0;
+      let mixed = Math.imul(state ^ (state >>> 15), 1 | state);
+      mixed = (mixed + Math.imul(mixed ^ (mixed >>> 7), 61 | mixed)) ^ mixed;
+      return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function glow(colour) {
+    const sprite = document.createElement('canvas');
+    sprite.width = SPRITE;
+    sprite.height = SPRITE;
+    const paint = sprite.getContext('2d');
+    const middle = SPRITE / 2;
+    const fade = paint.createRadialGradient(middle, middle, 0, middle, middle, middle);
+    fade.addColorStop(0, '#ffffff');
+    fade.addColorStop(0.16, colour);
+    fade.addColorStop(0.4, colour + '55');
+    fade.addColorStop(1, colour + '00');
+    paint.fillStyle = fade;
+    paint.fillRect(0, 0, SPRITE, SPRITE);
+    return sprite;
+  }
+
+  // The 3D map, drawn on a plain canvas. A paper sits by the biggest of its topics, or on an outer shell if it has none of them.
+  function startScene() {
+    const canvas = $('scene');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    const hubs = Object.keys(uses).sort((a, b) => uses[b] - uses[a] || a.localeCompare(b)).slice(0, SCENE_TOPICS).map((topic, index) => {
+      // A Fibonacci spiral spreads points evenly over a sphere.
+      const y = 1 - (index + 0.5) / SCENE_TOPICS * 2;
+      const round = Math.sqrt(1 - y * y);
+      const turn = index * Math.PI * (3 - Math.sqrt(5));
+      return { topic, x: Math.cos(turn) * round, y, z: Math.sin(turn) * round, sx: 0, sy: 0, depth: 0, scale: 1, box: null };
+    });
+    const hubOf = (paper) => hubs.find((one) => paper.topics.includes(one.topic)) || null;
+    hubs.forEach((hub) => { hub.papers = data.papers.filter((paper) => hubOf(paper) === hub).length; });
+    const stars = data.papers.map((paper) => {
+      const random = seeded(paper.id);
+      const hub = hubOf(paper);
+      const wide = hub ? 0.2 + 0.24 * Math.sqrt(hub.papers / hubs[0].papers) : 0;
+      const spread = () => (random() + random() + random() - 1.5) / 1.5 * wide;
+      const star = { paper, hub, size: Math.max(1.5, 1.5 + (paper.relevance - 5) * 0.5), phase: random() * Math.PI * 2, sx: 0, sy: 0, depth: 0, scale: 1, drawn: 0 };
+      if (hub) {
+        star.x = hub.x * 0.82 + spread();
+        star.y = hub.y * 0.82 + spread();
+        star.z = hub.z * 0.82 + spread();
+      } else {
+        const up = random() * 2 - 1;
+        const round = Math.sqrt(1 - up * up);
+        const turn = random() * Math.PI * 2;
+        const far = 0.9 + random() * 0.32;
+        star.x = Math.cos(turn) * round * far;
+        star.y = up * far;
+        star.z = Math.sin(turn) * round * far;
+      }
+      return star;
+    });
+    hubs.forEach((hub) => {
+      hub.spokes = stars.filter((star) => star.hub === hub).sort((a, b) => b.paper.relevance - a.paper.relevance).slice(0, SPOKES);
+    });
+    const sprites = { EM: glow('#d9692a'), DM: glow('#3f8ee6'), Transversal: glow('#1fa878') };
+    let width = 0;
+    let height = 0;
+    let ratio = 1;
+    let radius = 0;
+    let yaw = 0.6;
+    let pitch = 0.3;
+    let aimYaw = null;
+    let aimPitch = 0;
+    let lit = null;
+    let hover = null;
+    let hold = null;
+    let still = calm;
+    let onScreen = !('IntersectionObserver' in window);
+    let frame = 0;
+    let last = 0;
+    let begun = 0;
+
+    function place(point, sines, grow) {
+      const x = point.x * sines.cosYaw + point.z * sines.sinYaw;
+      const z = point.z * sines.cosYaw - point.x * sines.sinYaw;
+      const y = point.y * sines.cosPitch - z * sines.sinPitch;
+      const depth = point.y * sines.sinPitch + z * sines.cosPitch;
+      point.scale = CAMERA / (CAMERA - depth * grow);
+      point.sx = width / 2 + x * radius * point.scale * grow;
+      point.sy = height / 2 + y * radius * point.scale * grow;
+      point.depth = depth;
+    }
+
+    function drawRings(sines, grow) {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = 'rgba(190, 215, 240, .09)';
+      ctx.lineWidth = 1;
+      [(a) => ({ x: Math.cos(a), y: 0, z: Math.sin(a) }), (a) => ({ x: Math.cos(a), y: Math.sin(a), z: 0 }), (a) => ({ x: 0, y: Math.cos(a), z: Math.sin(a) })].forEach((circle) => {
+        ctx.beginPath();
+        for (let step = 0; step <= RING_STEPS; step += 1) {
+          const point = circle(step / RING_STEPS * Math.PI * 2);
+          place(point, sines, grow);
+          if (step) ctx.lineTo(point.sx, point.sy); else ctx.moveTo(point.sx, point.sy);
+        }
+        ctx.stroke();
+      });
+    }
+
+    function drawLine(from, to, colour) {
+      ctx.strokeStyle = colour;
+      ctx.beginPath();
+      ctx.moveTo(from.sx, from.sy);
+      ctx.lineTo(to.sx, to.sy);
+      ctx.stroke();
+    }
+
+    function drawLabels() {
+      const shown = width < 420 ? 6 : hubs.length;
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.font = '600 12px system-ui, -apple-system, "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.lineWidth = 3;
+      ctx.lineJoin = 'round';
+      hubs.forEach((hub) => { hub.box = null; });
+      hubs.slice(0, shown).forEach((hub) => {
+        if (hub.depth < 0.15) return;
+        const label = topicLabel(hub.topic);
+        ctx.globalAlpha = lit ? 0.45 : Math.min(1, hub.depth + 0.2);
+        ctx.strokeStyle = 'rgba(11, 22, 34, .75)';
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeText(label, hub.sx, hub.sy);
+        ctx.fillText(label, hub.sx, hub.sy);
+        const half = ctx.measureText(label).width / 2;
+        hub.box = { left: hub.sx - half - 6, right: hub.sx + half + 6, top: hub.sy - 14, bottom: hub.sy + 6 };
+      });
+    }
+
+    function draw(time) {
+      frame = 0;
+      if (!width) return;
+      const elapsed = Math.min(time - last, 50);
+      last = time;
+      begun = begun || time;
+      const opened = calm ? 1 : Math.min(1, (time - begun) / OPEN_MS);
+      const grow = 1 - (1 - opened) ** 3;
+      if (aimYaw !== null) {
+        const gap = Math.atan2(Math.sin(aimYaw - yaw), Math.cos(aimYaw - yaw));
+        yaw += gap * 0.07;
+        pitch += (aimPitch - pitch) * 0.07;
+        if (Math.abs(gap) < 0.01 && Math.abs(aimPitch - pitch) < 0.01) aimYaw = null;
+      } else if (!still && !hold && !hover) {
+        yaw += elapsed * SPIN;
+      }
+      const sines = { cosYaw: Math.cos(yaw), sinYaw: Math.sin(yaw), cosPitch: Math.cos(pitch), sinPitch: Math.sin(pitch) };
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+      drawRings(sines, grow);
+      hubs.forEach((hub) => place(hub, sines, grow));
+      stars.forEach((star) => place(star, sines, grow));
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = lit ? 0.25 : 1;
+      hubs.forEach((hub) => hub.spokes.forEach((star) => drawLine(hub, star, 'rgba(190, 215, 240, .1)')));
+      stars.sort((a, b) => a.depth - b.depth);
+      if (hover && hover.hub) {
+        ctx.globalAlpha = 0.5;
+        hover.hub.spokes.forEach((star) => drawLine(hover, star, 'rgba(255, 255, 255, .55)'));
+      }
+      ctx.globalCompositeOperation = 'lighter';
+      stars.forEach((star) => {
+        const inLight = !lit || lit.has(star.paper.id);
+        const chosen = star.paper.issues.length > 0;
+        let size = star.size * 5 * star.scale;
+        if (lit && inLight) size *= 1.5;
+        if (chosen) size *= 1 + Math.sin(time * 0.003 + star.phase) * (still ? 0 : 0.14);
+        if (star === hover) size *= 1.8;
+        ctx.globalAlpha = lit ? (inLight ? 1 : 0.07) : 0.22 + 0.5 * (star.depth + 1.3) / 2.6;
+        ctx.drawImage(sprites[star.paper.market_focus] || sprites.Transversal, star.sx - size / 2, star.sy - size / 2, size, size);
+        star.drawn = size;
+        if (chosen && inLight) {
+          ctx.strokeStyle = 'rgba(255, 255, 255, .7)';
+          ctx.beginPath();
+          ctx.arc(star.sx, star.sy, size * 0.42, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      });
+      drawLabels();
+      if (!still || hold || aimYaw !== null) wake();
+    }
+
+    function wake() {
+      if (!frame && onScreen && !document.hidden) frame = requestAnimationFrame(draw);
+    }
+
+    function fit() {
+      const box = canvas.getBoundingClientRect();
+      if (!box.width) return;
+      ratio = Math.min(window.devicePixelRatio || 1, 2);
+      width = box.width;
+      height = box.height;
+      radius = Math.min(width, height) * 0.43;
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      last = performance.now();
+      wake();
+    }
+
+    function spot(event) {
+      const box = canvas.getBoundingClientRect();
+      return { x: event.clientX - box.left, y: event.clientY - box.top };
+    }
+
+    function starAt({ x, y }) {
+      let found = null;
+      stars.forEach((star) => {
+        const reach = Math.max(9, star.drawn * 0.45);
+        const near = (star.sx - x) ** 2 + (star.sy - y) ** 2 <= reach * reach;
+        if (near && (!found || star.depth > found.depth)) found = star;
+      });
+      return found;
+    }
+
+    const topicAt = ({ x, y }) => hubs.find((hub) => hub.box && x >= hub.box.left && x <= hub.box.right && y >= hub.box.top && y <= hub.box.bottom);
+
+    canvas.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      hold = { x: event.clientX, y: event.clientY, moved: 0 };
+      aimYaw = null;
+      wake();
+      // Captured, so a drag that leaves the map keeps turning it and always ends on release.
+      canvas.setPointerCapture(event.pointerId);
+    });
+    canvas.addEventListener('keydown', (event) => {
+      const turn = { ArrowLeft: [-0.2, 0], ArrowRight: [0.2, 0], ArrowUp: [0, -0.2], ArrowDown: [0, 0.2] }[event.key];
+      if (!turn) return;
+      event.preventDefault();
+      aimYaw = null;
+      yaw += turn[0];
+      pitch = Math.max(-1.2, Math.min(1.2, pitch + turn[1]));
+      wake();
+    });
+    canvas.addEventListener('pointermove', (event) => {
+      if (hold) {
+        const across = event.clientX - hold.x;
+        const down = event.clientY - hold.y;
+        hold.moved += Math.abs(across) + Math.abs(down);
+        hold.x = event.clientX;
+        hold.y = event.clientY;
+        yaw += across * 0.007;
+        pitch = Math.max(-1.2, Math.min(1.2, pitch + down * 0.007));
+        hideTip();
+        return;
+      }
+      if (event.pointerType === 'touch') return;
+      hover = starAt(spot(event));
+      canvas.style.cursor = hover || topicAt(spot(event)) ? 'pointer' : '';
+      if (hover) {
+        fillTip(hover.paper.title, [{ key: hover.paper.market_focus, value: hover.paper.relevance, label: 'of 10, ' + hover.paper.market_focus }]);
+        placeTip(event.clientX, event.clientY);
+      } else {
+        hideTip();
+      }
+      wake();
+    });
+    canvas.addEventListener('pointerup', (event) => {
+      const clicked = hold && hold.moved < 6;
+      hold = null;
+      if (!clicked) return;
+      const here = spot(event);
+      const topic = topicAt(here);
+      const star = starAt(here);
+      hideTip();
+      if (topic) {
+        const prompt = 'Best papers on ' + topicLabel(topic.topic).toLowerCase();
+        say(prompt, () => answerTo(prompt));
+      } else if (star) {
+        askAbout(star.paper);
+      }
+    });
+    canvas.addEventListener('pointercancel', () => { hold = null; });
+    canvas.addEventListener('pointerleave', () => { hover = null; hideTip(); wake(); });
+    document.addEventListener('visibilitychange', wake);
+    if (!onScreen) {
+      new IntersectionObserver((entries) => {
+        onScreen = entries[entries.length - 1].isIntersecting;
+        if (onScreen) { last = performance.now(); fit(); }
+      }).observe(canvas);
+    }
+    if ('ResizeObserver' in window) new ResizeObserver(fit).observe(canvas); else window.addEventListener('resize', fit);
+    fit();
+
+    return {
+      light(papers) {
+        lit = papers ? new Set(papers.map((paper) => paper.id)) : null;
+        wake();
+      },
+      pause(value) {
+        still = calm || value;
+        if (still && aimYaw !== null) {
+          yaw = aimYaw;
+          pitch = aimPitch;
+          aimYaw = null;
+        }
+        last = performance.now();
+        wake();
+      },
+      focus(paper) {
+        const star = stars.find((one) => one.paper.id === paper.id);
+        if (!star) return;
+        const across = Math.hypot(star.x, star.z);
+        aimYaw = Math.atan2(-star.x, star.z);
+        aimPitch = Math.max(-1.2, Math.min(1.2, Math.atan2(star.y, across)));
+        if (still) { yaw = aimYaw; pitch = aimPitch; aimYaw = null; }
+        wake();
+      },
+    };
   }
 
   function renderCallout() {
@@ -677,7 +1560,8 @@
     const to = $('fTo').value;
     const search = $('fSearch').value.trim().toLowerCase();
     const papers = data.papers.filter((paper) => (
-      (!issue || paper.issues.includes(issue))
+      (!pinned || pinned.ids.has(paper.id))
+      && (!issue || paper.issues.includes(issue))
       && (!tag || paper.market_focus === tag)
       && (!group || groupOf.get(paper.source) === group)
       && (!source || paper.source === source)
@@ -720,7 +1604,18 @@
       paper.takeaways.length ? el('ul', {}, paper.takeaways.map((line) => el('li', { text: line }))) : null,
       paper.why_it_matters ? el('p', {}, el('strong', { text: 'Why it matters: ' }), paper.why_it_matters) : null,
       el('dl', { class: 'facts' }, facts.flatMap(([key, value]) => [el('dt', { text: key }), el('dd', { text: value })])),
-      el('p', {}, el('a', { href: paper.url, target: '_blank', rel: 'noopener', text: 'Open the paper' })));
+      el('div', { class: 'actions' },
+        el('a', { class: 'plain', href: paper.url, target: '_blank', rel: 'noopener', text: 'Open the paper' }),
+        el('button', {
+          type: 'button',
+          class: 'plain',
+          text: 'Ask for papers like this',
+          onclick: () => {
+            location.hash = 'overview';
+            showPage('overview');
+            say('More like "' + paper.title + '"', () => similarTo(paper), true);
+          },
+        })));
   }
 
   function paperRow(paper) {
@@ -757,7 +1652,19 @@
 
   function renderChips() {
     const active = Object.keys(CHIP_NAMES).filter((id) => $(id).value);
-    $('chips').replaceChildren(...active.map((id) => {
+    const question = pinned ? el('button', {
+      type: 'button',
+      class: 'chip',
+      'aria-label': 'Remove the filter from your question',
+      text: 'Your question: ' + pinned.label + ' ×',
+      onclick: () => {
+        pinned = null;
+        shown = PAGE_SIZE;
+        render();
+        $('clear').focus();
+      },
+    }) : null;
+    $('chips').replaceChildren(...(question ? [question] : []), ...active.map((id) => {
       const text = CHIP_NAMES[id] + ': ' + chipText(id);
       return el('button', {
         type: 'button',
@@ -790,18 +1697,20 @@
     const inside = $('latestFrame').contentDocument;
     // The page body stretches to fill the frame, so only the newsletter's own table gives its real height.
     const sheet = inside && inside.querySelector('table');
-    if (sheet && !$('latest').hidden) $('latestFrame').style.height = sheet.offsetHeight + 'px';
+    if (sheet && !$('page-latest').hidden) $('latestFrame').style.height = sheet.offsetHeight + 'px';
   }
 
   function loadIssue() {
     // The frame loads when first shown, because a hidden frame can't measure the page inside it.
     const issue = data && data.issues[0];
-    if (issue && !$('latest').hidden && !$('latestFrame').getAttribute('src')) $('latestFrame').src = 'issues/' + issue.file;
+    if (issue && !$('page-latest').hidden && !$('latestFrame').getAttribute('src')) $('latestFrame').src = 'issues/' + issue.file;
   }
 
   function showPage(page) {
     hideTip();
-    PAGES.forEach((id) => { $(id).hidden = id !== page; });
+    // The sections' ids differ from the page names, or the browser would jump past the assistant to the section.
+    PAGES.forEach((id) => { $('page-' + id).hidden = id !== page; });
+    $('hero').hidden = page !== 'overview';
     document.querySelectorAll('nav button').forEach((button) => {
       if (button.dataset.page === page) button.setAttribute('aria-current', 'page');
       else button.removeAttribute('aria-current');
@@ -829,6 +1738,7 @@
         tagMix(tagCounts(papers), true),
         el('div', { class: 'actions' }, el('button', { type: 'button', class: 'plain', text: 'Explore these papers', onclick: () => openExplore({ fIssue: issue.month }) })));
     }));
+    $('issues').querySelectorAll('.issue-card').forEach(tilt);
     const isRead = (row) => row.status === 'working' || row.status === 'fallback';
     $('healthNote').textContent = data.health.length
       ? 'From the last run, on ' + dayLabel(data.health[0].run_at) + ': ' + data.health.filter(isRead).length + ' of ' + data.health.length + ' sources read. Found is the number of recent papers checked, and New is how many of those were new. The Route column shows how each source is read. Fallback means its own feed and publisher records such as Crossref did not work, so its papers come through RePEc or EconStor.'
@@ -886,8 +1796,16 @@
     $('csv').addEventListener('click', downloadCsv);
     $('clear').addEventListener('click', () => {
       FILTERS.forEach((id) => { $(id).value = id === 'fOrder' ? 'score' : ''; });
+      pinned = null;
       shown = PAGE_SIZE;
       render();
+    });
+    $('chatClear').addEventListener('click', () => {
+      $('thread').replaceChildren();
+      $('chat').hidden = true;
+      $('askStatus').textContent = '';
+      lightView();
+      $('askInput').focus();
     });
     $('latestFrame').addEventListener('load', fitFrame);
     window.addEventListener('resize', fitFrame);
@@ -899,10 +1817,18 @@
       $('latestNote').textContent = 'No issue has been built yet.';
       $('latestFrame').hidden = true;
     }
-    const lastRun = data.health.length ? data.health[0] : null;
-    const read = data.health.filter((row) => row.status === 'working' || row.status === 'fallback').length;
-    $('ovNote').textContent = lastRun ? read + ' of ' + data.health.length + ' sources read at the last run, on ' + dayLabel(lastRun.run_at) + '.' : '';
     $('ovFilters').hidden = false;
+    sourceNames = [...sources].sort((a, b) => b.length - a.length);
+    renderHero();
+    scene = startScene();
+    $('askSend').disabled = false;
+    setStill(savedStill());
+    $('still').addEventListener('click', () => {
+      const value = !document.documentElement.classList.contains('still');
+      setStill(value);
+      saveStill(value);
+    });
+    reveal([$('ovFilters'), $('tiles'), $('chartWeeks'), $('chartScores'), $('chartTopics'), $('chartSources'), $('groups')]);
     renderCallout();
     renderOverview();
     renderArchive();
@@ -912,6 +1838,13 @@
 
   document.querySelectorAll('nav button').forEach((button) => {
     button.addEventListener('click', () => { location.hash = button.dataset.page; });
+  });
+  $('askForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const question = $('askInput').value.trim();
+    if (!question || !data) return;
+    $('askInput').value = '';
+    say(question, () => answerTo(question));
   });
   window.addEventListener('hashchange', () => { showPage(currentPage()); window.scrollTo(0, 0); });
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') hideTip(); });

@@ -1,4 +1,7 @@
+import re
+
 from src import db, publish
+from src.config import ROOT
 from src.models import no_em_dash
 from src.publish import clean_topics, site_data
 from tests.test_db import RESULT, make_paper
@@ -56,3 +59,18 @@ def test_a_paper_is_only_in_issues_that_have_a_page(tmp_path, monkeypatch):
     db.save_issue(conn, "2026-09", [paper.id])
     db.save_issue(conn, "2026-10", [paper.id])
     assert site_data(conn)["papers"][0]["issues"] == ["2026-10"]
+
+
+def test_the_page_loads_nothing_from_another_site():
+    page = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
+    assert re.findall(r"<(?:script|link|img|iframe)[^>]+(?:src|href)=[\"']https?:", page) == []
+    assert re.findall(r"fetch\([\"']https?:", page) == []
+    assert "@import" not in page
+
+
+def test_no_page_name_is_also_an_element_id():
+    # A hash that matches an id makes the browser jump to that element, past the top of the page.
+    page = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
+    pages = re.findall(r'data-page="(\w+)"', page)
+    assert len(pages) == 4
+    assert not set(pages) & set(re.findall(r'\bid="([\w-]+)"', page))

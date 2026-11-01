@@ -75,6 +75,21 @@ def test_score_compares_hand_tags_with_the_ai(conn, capsys):
     assert "DM 0 of 1, EM 1 of 1" in output
 
 
+def test_the_panel_report_says_it_is_not_accuracy(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(compare, "PANEL", tmp_path / "panel.csv")
+    with open(compare.PANEL, "w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerow(["round", "id", "title", "literal", "desk", "sceptic", "panel", "model"])
+        writer.writerow(["1", "a", "A paper", "DM", "DM", "DM", "DM", "DM"])
+        writer.writerow(["1", "b", "Another", "EM", "EM", "DM", "EM", "DM"])
+    compare.score_panel()
+    output = capsys.readouterr().out
+    assert "not accuracy" in output
+    assert "1 of 2 papers match: 50%" in output
+    assert "All three readers agreed on 1" in output
+    assert "Readers: EM. Model: DM" in output
+
+
 def test_a_small_sample_gets_a_wide_range():
     low, high = compare.wilson_interval(18, 20)
     assert round(low, 2) == 0.70 and round(high, 2) == 0.97

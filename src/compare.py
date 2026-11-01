@@ -10,6 +10,7 @@ from src.db import connect
 
 SHEET = ROOT / "data" / "hand_tags.csv"
 SECOND_READER = ROOT / "data" / "second_reader_tags.csv"
+PANEL = ROOT / "data" / "reader_panel.csv"
 PAPERS_PER_TAG = {"EM": 8, "DM": 6, "Transversal": 6}
 TAGS = set(PAPERS_PER_TAG)
 
@@ -48,6 +49,22 @@ def make_sheet():
         writer.writerow(["id", "title", "abstract", "your_tag"])
         writer.writerows([row["id"], row["title"], row["abstract"], ""] for row in rows)
     print(f"Wrote {len(rows)} papers to {SHEET.relative_to(ROOT)}. Fill in your_tag with EM, DM or Transversal.")
+
+
+def score_panel():
+    """Reports each round of blind AI readers. The file holds the model's tag at the time, so the result can be rechecked."""
+    with open(PANEL, newline="", encoding="utf-8") as file:
+        rows = list(csv.DictReader(file))
+    print("This is agreement between AIs, not accuracy. No person is involved.")
+    for number in sorted({row["round"] for row in rows}):
+        group = [row for row in rows if row["round"] == number]
+        matches = sum(row["panel"] == row["model"] for row in group)
+        low, high = wilson_interval(matches, len(group))
+        unanimous = sum(row["literal"] == row["desk"] == row["sceptic"] for row in group)
+        print(f"Round {number}: {matches} of {len(group)} papers match: {matches / len(group):.0%}, 95% range {low:.0%} to {high:.0%}. All three readers agreed on {unanimous}.")
+        for row in group:
+            if row["panel"] != row["model"]:
+                print(f"- {row['title']}\n  Readers: {row['panel']}. Model: {row['model']}")
 
 
 def wilson_interval(matches, total):
@@ -101,5 +118,7 @@ if __name__ == "__main__":
         make_sheet()
     elif sys.argv[1:] == ["score"]:
         score_sheet()
+    elif sys.argv[1:] == ["panel"]:
+        score_panel()
     else:
-        print("Use: python -m src.compare sheet, or python -m src.compare score")
+        print("Use: python -m src.compare sheet, python -m src.compare score, or python -m src.compare panel")

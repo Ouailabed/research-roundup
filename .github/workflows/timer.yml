@@ -1,0 +1,44 @@
+name: Weekly timer
+
+# GitHub's cron can be late or skip a run, and on this repo it hadn't fired at all by November 2026.
+# So this job waits 7 days, starts the weekly run, then starts itself again. The wait is a timer on
+# the one-week environment, so it uses no runner. Cron stays too, and a second run changes nothing.
+on:
+  workflow_dispatch:
+    inputs:
+      test:
+        description: "Check the timer only, and start nothing"
+        type: boolean
+        default: false
+
+permissions:
+  actions: write
+
+# A run started by hand waits its turn, so there is never more than one timer going.
+concurrency:
+  group: weekly-timer
+  cancel-in-progress: false
+
+jobs:
+  wait-then-start:
+    runs-on: ubuntu-latest
+    environment: one-week
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TEST: ${{ inputs.test }}
+    steps:
+      - name: Stop if the wait didn't happen, rather than loop
+        run: |
+          started=$(gh run view "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --json createdAt --jq .createdAt)
+          waited=$(( $(date +%s) - $(date -d "$started" +%s) ))
+          echo "Waited $waited seconds"
+          if [ "$TEST" != "true" ] && [ "$waited" -lt 518400 ]; then
+            echo "The one-week environment has no wait timer, so the chain stops here."
+            exit 1
+          fi
+      - name: Start the weekly run
+        if: inputs.test != true
+        run: gh workflow run weekly.yml --repo "$GITHUB_REPOSITORY"
+      - name: Start the next wait
+        if: inputs.test != true
+        run: gh workflow run timer.yml --repo "$GITHUB_REPOSITORY"

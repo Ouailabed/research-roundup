@@ -44,7 +44,21 @@ class Analysis(Score):
     why_it_matters: str = Field(description="Why this matters for a markets research team.")
 
 
-LONGEST_ANSWER = {Score: 800, Analysis: 2000}
+class Ranking(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    ranking: list[int] = Field(min_length=1, description="Paper numbers, best first.")
+
+
+class Overview(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    overview: str = Field(description="Two or three plain sentences.")
+
+
+LONGEST_ANSWER = {Score: 800, Analysis: 2000, Ranking: 2500, Overview: 1000}
+# These models think before they answer, and that counts towards the limit. Scoring doesn't need much of it.
+THINKING = {Score: "low", Ranking: "medium"}
 
 
 class DailyLimitReached(Exception):
@@ -72,18 +86,17 @@ def seconds_to_wait(error):
 
 
 def model_options(model, shape):
-    # These models think before they answer, and that counts towards the limit. Scoring doesn't need much of it.
-    if shape is Score and model.startswith("openai/gpt-oss"):
-        return {"reasoning_effort": "low"}
+    if shape in THINKING and model.startswith("openai/gpt-oss"):
+        return {"reasoning_effort": THINKING[shape]}
     return {}
 
 
-def call_model(client, model, paper, shape):
+def call_model(client, model, rules, text, shape):
     while True:
         try:
             reply = client.chat.completions.create(
                 model=model,
-                messages=[{"role": "system", "content": RULES}, {"role": "user", "content": paper_text(paper)}],
+                messages=[{"role": "system", "content": rules}, {"role": "user", "content": text}],
                 response_format=response_format(shape),
                 max_completion_tokens=LONGEST_ANSWER[shape],
                 **model_options(model, shape),
@@ -95,19 +108,23 @@ def call_model(client, model, paper, shape):
             time.sleep(seconds_to_wait(error))
 
 
-def analyse_paper(client, model, paper, shape):
+def checked_answer(client, model, rules, text, shape, name):
     """Returns a checked result, or None if the answer is still invalid after one retry."""
     for attempt in (1, 2):
         try:
-            return shape.model_validate(json.loads(call_model(client, model, paper, shape)))
+            return shape.model_validate(json.loads(call_model(client, model, rules, text, shape)))
         except BadRequestError as error:
             # Groq refuses an answer that breaks the JSON shape. Any other 400 is a real fault.
             if "json_validate_failed" not in str(error):
                 raise
-            print(f"Groq refused the answer for {paper['id']}, attempt {attempt}")
+            print(f"Groq refused the answer for {name}, attempt {attempt}")
         except (json.JSONDecodeError, ValidationError) as error:
-            print(f"Invalid answer for {paper['id']}, attempt {attempt}: {str(error)[:120]}")
+            print(f"Invalid answer for {name}, attempt {attempt}: {str(error)[:120]}")
     return None
+
+
+def analyse_paper(client, model, paper, shape):
+    return checked_answer(client, model, RULES, paper_text(paper), shape, paper["id"])
 
 
 def analyse_all(limit=None):

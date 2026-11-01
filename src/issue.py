@@ -1,3 +1,4 @@
+import hashlib
 import json
 import logging
 from collections import Counter
@@ -7,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from premailer import Premailer
 
 from src.ai import groq_client, have_key, load_settings
-from src.analyse import Analysis, DailyLimitReached, analyse_paper
+from src.analyse import Analysis, DailyLimitReached, Overview, Ranking, analyse_paper, checked_answer
 from src.config import ROOT
 from src.db import (
     connect,
@@ -18,19 +19,40 @@ from src.db import (
     month_counts,
     paper_by_id,
     save_issue,
+    save_overview,
     save_writeup,
     saved_issue,
+    saved_overview,
 )
 
 MIN_PAPERS = 5
 MAX_PAPERS = 8
 MAX_PER_SOURCE = 2
 FOCUSES = ("EM", "DM", "Transversal")
+# Scores bunch at 9, so the editor reads everything from here up.
+EDITOR_SCORE = 9
+# A group of 40 fits inside the model's 8,000 tokens a minute.
+EDITOR_GROUP = 40
+KEPT_FROM_GROUP = 8
+KEPT_AT_THE_END = 15
+EDITOR_RULES = """You are the editor of The Research Roundup, a monthly newsletter for a markets research team at an investment bank.
+
+Below are new economics papers, numbered, with their EM, DM or Transversal tag. Choose the {keep} most useful to that team and rank them, best first.
+
+Put first the papers with a clear finding that could change a view on rates, currencies, credit, inflation, growth or central bank policy. New evidence beats a survey. A broad finding beats a narrow one. Judge only from the text given.
+
+Answer with the paper numbers in order."""
+OVERVIEW_RULES = """You write the opening note of The Research Roundup, a monthly newsletter for a markets research team at an investment bank.
+
+Below are this month's chosen papers. In two or three plain sentences, say what they tell the team and what links them. Don't go through them one by one.
+
+Use only the text given. Never add findings, numbers, names or places that are not there. Never use em dashes."""
 ISSUE_FOLDER = ROOT / "site" / "issues"
 SELECTION_NOTE = (
     "Each week the agent scores every new paper from 1 to 10 for its use to a markets research team. "
-    "Each month it picks the highest scores, at most 2 from any one source, with a mix of EM, DM and "
-    "Transversal papers where possible. A paper belongs to the month it was first seen."
+    "Each month a stronger AI model reads the top-scored papers as an editor and ranks them. The issue takes "
+    "the top of that ranking, at most 2 from any one source, with a mix of EM, DM and Transversal papers where "
+    "possible. A paper belongs to the month it was first seen."
 )
 
 
@@ -63,6 +85,61 @@ def choose_papers(rows):
             take(row)
 
     return [row[0] for row in sorted(chosen, key=lambda row: (-row[3], row[0]))]
+
+
+def editor_text(rows):
+    return "\n\n".join(
+        f"{number}. [{row['market_focus']}] {row['title']} ({row['source']})\n{row['summary']}"
+        for number, row in enumerate(rows, 1)
+    )
+
+
+def ask_editor(client, model, rows, keep):
+    """Returns the rows the editor kept, best first, or None if it gave no usable answer."""
+    answer = checked_answer(client, model, EDITOR_RULES.format(keep=keep), editor_text(rows), Ranking, "the editor")
+    if not answer:
+        return None
+    numbers = dict.fromkeys(number for number in answer.ranking if 1 <= number <= len(rows))
+    return [rows[number - 1] for number in numbers][:keep] or None
+
+
+def mixed(rows):
+    # A hash gives a fixed order that isn't by source, so no group is all from one place.
+    return sorted(rows, key=lambda row: hashlib.sha256(row["id"].encode("utf-8")).hexdigest())
+
+
+def editor_ranking(client, model, rows):
+    """Ranks papers, best first. A long list goes through in groups, then the winners are ranked together."""
+    finalists = mixed(rows)
+    if len(finalists) > EDITOR_GROUP:
+        groups = [finalists[start:start + EDITOR_GROUP] for start in range(0, len(finalists), EDITOR_GROUP)]
+        finalists = []
+        for group in groups:
+            winners = ask_editor(client, model, group, KEPT_FROM_GROUP)
+            if winners is None:
+                return None
+            finalists += winners
+    return ask_editor(client, model, finalists, KEPT_AT_THE_END)
+
+
+def editor_order(rows, model, client):
+    """Puts the editor's order in place of the score, so that choose_papers applies its rules to that order.
+
+    Two models share the scoring and use the scale a little differently, and many papers tie, so a score
+    only earns a place on the editor's desk. With no key or no usable answer, the plain scores decide.
+    """
+    top = [row for row in rows if row["relevance"] >= EDITOR_SCORE]
+    if client is None or len(top) <= MAX_PAPERS:
+        return rows
+    ranking = editor_ranking(client, model, top)
+    if ranking is None:
+        print("The editor gave no usable answer, so the plain scores decide this issue.")
+        return rows
+    places = {row["id"]: place for place, row in enumerate(ranking)}
+    return [
+        (row["id"], row["source"], row["market_focus"], -places[row["id"]] if row["id"] in places else row["relevance"] - 1000)
+        for row in rows
+    ]
 
 
 def last_full_month(today=None):
@@ -109,6 +186,24 @@ def write_up(conn, paper_ids, model):
     return True
 
 
+def write_overview(conn, month, papers, model):
+    """The issue's opening note. It is an extra, so an issue still builds without one."""
+    saved = saved_overview(conn, month)
+    if saved or not have_key():
+        return saved
+    text = "\n\n".join(f"{paper['title']} ({paper['market_focus']})\n{paper['summary']}" for paper in papers)
+    try:
+        answer = checked_answer(groq_client(), model, OVERVIEW_RULES, text, Overview, "the opening note")
+    except DailyLimitReached as error:
+        print(f"No opening note this time: {error}.")
+        return ""
+    if not answer:
+        return ""
+    overview = no_em_dash(answer.overview)
+    save_overview(conn, month, model, overview)
+    return overview
+
+
 def issue_context(rows):
     papers = []
     for row in rows:
@@ -124,17 +219,21 @@ def issue_context(rows):
     return papers
 
 
-def render_issue(month, papers, paper_count, source_count):
+def render_issue(month, papers, paper_count, source_count, overview=""):
     environment = Environment(loader=FileSystemLoader(ROOT / "templates"), autoescape=select_autoescape(["html"]))
     html = environment.get_template("newsletter.html").render(
         month_label=month_label(month),
+        overview=overview,
         intro=(
             f"This month the agent read {paper_count} new papers from {source_count} sources. "
             f"These {len(papers)} stood out for a markets research team."
         ),
+        # Inboxes show this next to the subject line.
+        preview=f"{len(papers)} papers for {month_label(month)}, led by: {papers[0]['title']}",
         papers=papers,
         selection_note=SELECTION_NOTE,
         source_count=source_count,
+        site_url=load_settings()["site_url"],
     )
     # Email apps ignore most style sheets, so the styles are moved onto each element.
     return Premailer(html, keep_style_tags=True, strip_important=False, cssutils_logging_level=logging.CRITICAL).transform()
@@ -146,7 +245,13 @@ def build_issue(month=None):
     conn = connect()
     chosen = saved_issue(conn, month)
     if not chosen:
-        chosen = choose_papers(issue_candidates(conn, month))
+        try:
+            client = groq_client() if have_key() else None
+            chosen = choose_papers(editor_order(issue_candidates(conn, month), models["strong"], client))
+        except DailyLimitReached as error:
+            print(f"Stopped for today: {error}. Run this again later and it carries on.")
+            conn.close()
+            return None
         if len(chosen) < MIN_PAPERS:
             print(f"{month}: only {len(chosen)} analysed papers, so no issue was built.")
             conn.close()
@@ -156,11 +261,12 @@ def build_issue(month=None):
         conn.close()
         return None
     papers = issue_context(issue_papers(conn, month))
+    overview = write_overview(conn, month, papers, models["strong"])
     paper_count, source_count = month_counts(conn, month)
     conn.close()
     ISSUE_FOLDER.mkdir(parents=True, exist_ok=True)
     path = ISSUE_FOLDER / f"{month}.html"
-    path.write_text(render_issue(month, papers, paper_count, source_count), encoding="utf-8")
+    path.write_text(render_issue(month, papers, paper_count, source_count, overview), encoding="utf-8")
     print(f"Built {path.relative_to(ROOT)} with {len(papers)} papers")
     return path
 

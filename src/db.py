@@ -74,6 +74,15 @@ CREATE TABLE IF NOT EXISTS issues (
 )
 """
 
+OVERVIEWS_SCHEMA = """
+CREATE TABLE IF NOT EXISTS overviews (
+    month TEXT PRIMARY KEY,
+    model TEXT,
+    written_at TEXT,
+    overview TEXT
+)
+"""
+
 
 def connect():
     conn = sqlite3.connect(DB_PATH)
@@ -83,6 +92,7 @@ def connect():
     conn.execute(ANALYSES_SCHEMA)
     conn.execute(WRITEUPS_SCHEMA)
     conn.execute(ISSUES_SCHEMA)
+    conn.execute(OVERVIEWS_SCHEMA)
     # A database made before this column existed needs it added.
     columns = {row["name"] for row in conn.execute("PRAGMA table_info(papers)")}
     if "duplicate_of" not in columns:
@@ -189,7 +199,7 @@ def save_writeup(conn, paper_id, model, result):
 
 def issue_candidates(conn, month):
     return conn.execute(
-        """SELECT p.id, p.source, a.market_focus, a.relevance
+        """SELECT p.id, p.source, a.market_focus, a.relevance, p.title, a.summary
         FROM papers p JOIN analyses a ON a.paper_id = p.id
         WHERE p.duplicate_of IS NULL AND substr(p.first_seen, 1, 7) = ?""",
         (month,),
@@ -226,6 +236,16 @@ def issue_papers(conn, month):
         WHERE i.month = ? ORDER BY i.position""",
         (month,),
     ).fetchall()
+
+
+def saved_overview(conn, month):
+    row = conn.execute("SELECT overview FROM overviews WHERE month = ?", (month,)).fetchone()
+    return row[0] if row else ""
+
+
+def save_overview(conn, month, model, overview):
+    conn.execute("INSERT OR REPLACE INTO overviews (month, model, written_at, overview) VALUES (?, ?, ?, ?)", (month, model, right_now(), overview))
+    conn.commit()
 
 
 def month_counts(conn, month):

@@ -9,3 +9,6 @@ models:
 
 # Papers first seen before this date are kept but not analysed.
 analyse_from: "2026-09-01"
+
+# Linked from the foot of each newsletter.
+site_url: https://ouailabed.github.io/research-roundup/

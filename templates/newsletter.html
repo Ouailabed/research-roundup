@@ -3,10 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
 <title>The Research Roundup | {{ month_label }}</title>
 <style>
   body { margin: 0; padding: 0; background: #eef1f5; color: #1c2733; font-family: Georgia, "Times New Roman", serif; }
   a { color: #17527a; }
+  .preview { display: none; max-height: 0; overflow: hidden; font-size: 1px; line-height: 1px; color: #eef1f5; }
   .outer { background: #eef1f5; }
   .sheet { background: #ffffff; max-width: 600px; }
   .masthead { background: #12263a; padding: 28px 32px 24px; }
@@ -14,6 +17,7 @@
   .brand { margin: 0; font-size: 30px; line-height: 1.15; font-weight: normal; color: #ffffff; }
   .intro { padding: 24px 32px 8px; font-size: 16px; line-height: 1.55; }
   .intro p { margin: 0 0 12px; }
+  .intro .count { font-family: Arial, Helvetica, sans-serif; font-size: 13px; line-height: 1.45; color: #5a6b7b; }
   .glance { padding: 0 32px 8px; }
   .glance h2, .label { margin: 0 0 8px; font-family: Arial, Helvetica, sans-serif; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #5a6b7b; }
   .glance ol { margin: 0 0 12px; padding-left: 20px; font-size: 15px; line-height: 1.45; }
@@ -40,9 +44,11 @@
 </style>
 </head>
 <body>
+<div class="preview">{{ preview }}</div>
 <table role="presentation" class="outer" width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr>
     <td align="center">
+      <!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
       <table role="presentation" class="sheet" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
         <tr>
           <td class="masthead">
@@ -52,7 +58,8 @@
         </tr>
         <tr>
           <td class="intro">
-            <p>{{ intro }}</p>
+            {% if overview %}<p>{{ overview }}</p>{% endif %}
+            <p class="count">{{ intro }}</p>
           </td>
         </tr>
         <tr>
@@ -60,14 +67,14 @@
             <h2>In this issue</h2>
             <ol>
               {% for paper in papers %}
-              <li>{{ paper.title }} ({{ paper.market_focus }})</li>
+              <li><a href="#paper-{{ loop.index }}">{{ paper.title }}</a> ({{ paper.market_focus }})</li>
               {% endfor %}
             </ol>
           </td>
         </tr>
         {% for paper in papers %}
         <tr>
-          <td class="paper">
+          <td class="paper" id="paper-{{ loop.index }}">
             <span class="tag tag-{{ paper.market_focus }}">{{ paper.market_focus }}</span>
             <h2 class="title"><a href="{{ paper.url }}">{{ paper.title }}</a></h2>
             <p class="meta">{{ paper.authors }}<br>{{ paper.source }}{% if paper.published_label %}, {{ paper.published_label }}{% endif %}</p>
@@ -89,9 +96,11 @@
             <p><strong>How papers are chosen.</strong> {{ selection_note }}</p>
             <p><strong>Sources.</strong> This issue drew on {{ source_count }} sources: the five leading economics journals, G10 and European central banks, the 12 regional Federal Reserve banks, NBER, BPEA, the IMF and the BIS.</p>
             <p>Summaries are written by AI from each paper's title and abstract only. Always check the paper itself before relying on a result.</p>
+            <p><a href="{{ site_url }}">Read past issues and explore every paper</a></p>
           </td>
         </tr>
       </table>
+      <!--[if mso]></td></tr></table><![endif]-->
     </td>
   </tr>
 </table>

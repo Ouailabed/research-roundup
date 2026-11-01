@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from src import db, issue
-from src.analyse import DailyLimitReached, Overview, Ranking
+from src.analyse import Analysis, DailyLimitReached, Overview, Ranking
 from tests.test_db import RESULT, make_paper
 from src.issue import choose_papers, date_label, editor_order, issue_context, last_full_month, months_since, no_em_dash
 
@@ -144,7 +144,7 @@ def test_an_issue_with_no_opening_note_yet_is_finished_on_a_later_run(month_of_p
     monkeypatch.setattr(issue, "write_up", lambda *args: True)
     monkeypatch.setattr(issue, "issue_papers", lambda *args: [])
     monkeypatch.setattr(issue, "write_overview", limit)
-    assert issue.build_issue("2026-10") is None
+    assert issue.build_issue("2026-10") is issue.STOPPED
     assert not issue.is_finished(month_of_papers, "2026-10")
 
 
@@ -209,6 +209,45 @@ def test_a_month_with_a_page_but_no_list_is_chosen_again(month_of_papers, monkey
     (issue.ISSUE_FOLDER / "2026-09.html").write_text("an older version")
     issue.build_missing_issues()
     assert built == ["2026-09"]
+
+
+def writer(monkeypatch, failing):
+    """Stands in for the model, with no valid answer for the papers named."""
+    written = Analysis(summary="One.", market_focus="DM", tag_reason="names Japan", relevance=7, topics=["rates"], takeaways=["a", "b", "c"], why_it_matters="It matters.")
+    monkeypatch.setattr(issue, "have_key", lambda: True)
+    monkeypatch.setattr(issue, "groq_client", lambda: None)
+    monkeypatch.setattr(issue, "analyse_paper", lambda client, model, paper, shape: None if paper["id"] in failing else written)
+
+
+def test_a_paper_that_keeps_failing_leaves_the_issue_and_the_rest_go_on(month_of_papers, monkeypatch):
+    writer(monkeypatch, {"p2"})
+    chosen = [f"p{number}" for number in range(8)]
+    db.save_issue(month_of_papers, "2026-10", chosen)
+    assert issue.write_up(month_of_papers, "2026-10", chosen, "model")
+    assert "p2" not in db.saved_issue(month_of_papers, "2026-10")
+    assert db.has_writeup(month_of_papers, "p7")
+
+
+def test_too_few_write_ups_means_the_month_is_chosen_again(month_of_papers, monkeypatch):
+    writer(monkeypatch, {f"p{number}" for number in range(4)})
+    chosen = [f"p{number}" for number in range(8)]
+    db.save_issue(month_of_papers, "2026-10", chosen)
+    assert not issue.write_up(month_of_papers, "2026-10", chosen, "model")
+    assert db.saved_issue(month_of_papers, "2026-10") == []
+
+
+def test_the_daily_limit_stops_the_later_months_too(month_of_papers, monkeypatch):
+    months = []
+
+    def build(month):
+        months.append(month)
+        return issue.STOPPED
+
+    monkeypatch.setattr(issue, "build_issue", build)
+    monkeypatch.setattr(issue, "last_full_month", lambda: "2026-10")
+    monkeypatch.setattr(issue, "load_settings", lambda: {"analyse_from": "2026-09-01"})
+    issue.build_missing_issues()
+    assert months == ["2026-09"]
 
 
 def test_work_left_counts_papers_and_unfinished_issues(month_of_papers, monkeypatch):

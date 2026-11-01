@@ -29,9 +29,10 @@ EMERGING = [
     "Romania", "Romanian", "Russia", "Russian", "Rwanda", "Saudi Arabia", "Senegal", "Serbia", "Serbian", "Sierra Leone", "South Africa",
     "South African", "Sri Lanka", "Sudan", "Tajikistan", "Tanzania", "Thailand", "Thai", "Tunisia", "Turkey", "Turkish", "Türkiye",
     "Uganda", "Ukraine", "Ukrainian", "United Arab Emirates", "Uruguay", "Uzbekistan", "Venezuela", "Vietnam", "Vietnamese", "Yemen",
-    "Zambia", "Zimbabwe", "Sub-Saharan Africa", "sub-Saharan Africa", "Latin America", "Latin American", "South America", "South American",
+    "Zambia", "Zambian", "Zimbabwe", "Africa", "African", "Sub-Saharan Africa", "sub-Saharan Africa", "Western Balkans", "Latin America",
+    "Latin American", "South America", "South American",
     "Central America", "Central American", "developing countries", "developing economies", "emerging economies", "emerging markets",
-    "emerging market", "low-income countries",
+    "emerging market", "emerging-market", "low-income countries",
 ]
 NUMBER = re.compile(r"(?<![\w.])\d[\d,]*(?:\.\d+)?")
 

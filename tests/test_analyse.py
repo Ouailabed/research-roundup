@@ -3,9 +3,10 @@ from types import SimpleNamespace
 
 import httpx
 import pytest
-from groq import BadRequestError
+from groq import BadRequestError, InternalServerError
 from pydantic import ValidationError
 
+from src import analyse
 from src.analyse import Analysis, Score, analyse_paper, paper_text
 
 PAPER = {"id": "x", "title": "A Title", "authors": "A. Author", "source": "NBER", "abstract": "An abstract."}
@@ -99,6 +100,26 @@ def test_two_refused_answers_give_none():
 def test_any_other_bad_request_stops():
     with pytest.raises(BadRequestError):
         analyse_paper(RefusingClient(groq_refusal("model not found")), "model", PAPER, Score)
+
+
+def groq_outage():
+    response = httpx.Response(503, request=httpx.Request("POST", "https://example.org"))
+    return InternalServerError("service unavailable", response=response, body=None)
+
+
+def test_a_short_outage_does_not_end_a_run(monkeypatch):
+    monkeypatch.setattr(analyse.time, "sleep", lambda seconds: None)
+    client = RefusingClient(groq_outage(), json.dumps(GOOD))
+    assert analyse_paper(client, "model", PAPER, Score).relevance == 7
+    assert client.calls == 2
+
+
+def test_a_long_outage_stops_rather_than_hangs(monkeypatch):
+    monkeypatch.setattr(analyse.time, "sleep", lambda seconds: None)
+    client = RefusingClient(groq_outage(), groq_outage(), groq_outage(), json.dumps(GOOD))
+    with pytest.raises(InternalServerError):
+        analyse_paper(client, "model", PAPER, Score)
+    assert client.calls == 3
 
 
 def test_prompt_text_uses_only_the_paper():

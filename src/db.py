@@ -223,6 +223,16 @@ def save_issue(conn, month, paper_ids):
     conn.commit()
 
 
+def remove_from_issue(conn, month, paper_id):
+    conn.execute("DELETE FROM issues WHERE month = ? AND paper_id = ?", (month, paper_id))
+    conn.commit()
+
+
+def clear_issue(conn, month):
+    conn.execute("DELETE FROM issues WHERE month = ?", (month,))
+    conn.commit()
+
+
 def paper_by_id(conn, paper_id):
     return conn.execute("SELECT id, title, authors, abstract, source FROM papers WHERE id = ?", (paper_id,)).fetchone()
 

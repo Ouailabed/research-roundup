@@ -12,6 +12,7 @@ from src.ai import groq_client, have_key, load_settings
 from src.analyse import Analysis, DailyLimitReached, Overview, Ranking, analyse_paper, checked_answer
 from src.config import ROOT
 from src.db import (
+    clear_issue,
     connect,
     count_unscored,
     has_writeup,
@@ -20,6 +21,7 @@ from src.db import (
     month_counts,
     paper_by_id,
     papers_to_analyse,
+    remove_from_issue,
     save_issue,
     save_overview,
     save_writeup,
@@ -34,6 +36,7 @@ MAX_PER_SOURCE = 2
 # A paper can keep failing the checks, and that shouldn't hold up an issue for ever.
 MOST_LEFT_UNSCORED = 5
 FOCUSES = ("EM", "DM", "Transversal")
+STOPPED = "stopped at the daily limit"
 # Scores bunch at 9, so the editor reads everything from here up.
 EDITOR_SCORE = 9
 # A group of 40 fits inside the model's 8,000 tokens a minute.
@@ -172,8 +175,8 @@ def date_label(published):
     return published
 
 
-def write_up(conn, paper_ids, model):
-    """The stronger model writes the full analysis, only for the chosen papers."""
+def write_up(conn, month, paper_ids, model):
+    """The stronger model writes the full analysis, only for the chosen papers. False means the issue has to wait."""
     missing = [paper_id for paper_id in paper_ids if not has_writeup(conn, paper_id)]
     if not missing:
         return True
@@ -182,15 +185,17 @@ def write_up(conn, paper_ids, model):
         return False
     client = groq_client()
     for paper_id in missing:
-        try:
-            result = analyse_paper(client, model, paper_by_id(conn, paper_id), Analysis)
-        except DailyLimitReached as error:
-            print(f"Stopped for today: {error}. Run this again later and it carries on.")
-            return False
-        if not result:
-            print(f"No valid analysis for {paper_id}, so the issue was not built.")
-            return False
-        save_writeup(conn, paper_id, model, result)
+        result = analyse_paper(client, model, paper_by_id(conn, paper_id), Analysis)
+        if result:
+            save_writeup(conn, paper_id, model, result)
+        else:
+            # A paper can keep failing the checks, and that shouldn't hold up an issue for ever.
+            print(f"No valid analysis for {paper_id}, so it leaves this issue.")
+            remove_from_issue(conn, month, paper_id)
+    if len(saved_issue(conn, month)) < MIN_PAPERS:
+        print(f"{month}: too few papers could be written up, so this month is chosen again next time.")
+        clear_issue(conn, month)
+        return False
     return True
 
 
@@ -261,16 +266,16 @@ def build_issue(month=None):
             conn.close()
             return None
         save_issue(conn, month, chosen)
-    if not write_up(conn, chosen, models["strong"]):
-        conn.close()
-        return None
-    papers = issue_context(issue_papers(conn, month))
     try:
+        if not write_up(conn, month, saved_issue(conn, month), models["strong"]):
+            conn.close()
+            return None
+        papers = issue_context(issue_papers(conn, month))
         overview = write_overview(conn, month, papers, models["strong"])
     except DailyLimitReached as error:
         print(f"Stopped for today: {error}. Run this again later and it carries on.")
         conn.close()
-        return None
+        return STOPPED
     paper_count, source_count = month_counts(conn, month)
     conn.close()
     ISSUE_FOLDER.mkdir(parents=True, exist_ok=True)
@@ -300,8 +305,9 @@ def build_missing_issues():
         conn = connect()
         finished = is_finished(conn, month)
         conn.close()
-        if not finished:
-            build_issue(month)
+        # With the allowance gone, the next month's editor would only sit and wait out the job's time limit.
+        if not finished and build_issue(month) is STOPPED:
+            break
 
 
 def work_left():

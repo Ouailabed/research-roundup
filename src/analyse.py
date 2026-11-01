@@ -2,7 +2,7 @@ import json
 import time
 from typing import Literal
 
-from groq import BadRequestError, RateLimitError
+from groq import APIConnectionError, BadRequestError, InternalServerError, RateLimitError
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from src.ai import groq_client, have_key, load_settings
@@ -10,6 +10,8 @@ from src.check import tag_conflict
 from src.db import connect, papers_to_analyse, save_analysis
 
 LONGEST_ABSTRACT = 2500
+MOST_OUTAGES = 3
+SECONDS_AFTER_OUTAGE = 30
 # Table B of the IMF's World Economic Outlook, April 2026. It changes: Bulgaria joined when it took the euro.
 ADVANCED_NOTE = (
     "Andorra", "Australia", "Austria", "Belgium", "Bulgaria", "Canada", "Croatia", "Cyprus", "the Czech Republic", "Denmark", "Estonia",
@@ -105,6 +107,7 @@ def model_options(model, shape):
 
 
 def call_model(client, model, rules, text, shape):
+    outages = 0
     while True:
         try:
             reply = client.chat.completions.create(
@@ -119,6 +122,12 @@ def call_model(client, model, rules, text, shape):
             if "per day" in str(error):
                 raise DailyLimitReached(f"{model} has used up today's allowance", seconds_to_wait(error)) from error
             time.sleep(seconds_to_wait(error))
+        except (APIConnectionError, InternalServerError):
+            # A short outage shouldn't end a long run, and a long one shouldn't hang it.
+            outages += 1
+            if outages == MOST_OUTAGES:
+                raise
+            time.sleep(SECONDS_AFTER_OUTAGE)
 
 
 def checked_answer(client, model, rules, text, shape, name):

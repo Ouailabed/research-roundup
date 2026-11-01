@@ -2,6 +2,8 @@
 import csv
 import hashlib
 import sys
+from collections import Counter
+from math import sqrt
 
 from src.config import ROOT
 from src.db import connect
@@ -48,24 +50,48 @@ def make_sheet():
     print(f"Wrote {len(rows)} papers to {SHEET.relative_to(ROOT)}. Fill in your_tag with EM, DM or Transversal.")
 
 
+def wilson_interval(matches, total):
+    """The 95% range for a share. It stays honest on small samples, where a plain percentage overclaims."""
+    z = 1.96
+    share = matches / total
+    middle = (share + z * z / (2 * total)) / (1 + z * z / total)
+    spread = z * sqrt(share * (1 - share) / total + z * z / (4 * total * total)) / (1 + z * z / total)
+    return middle - spread, middle + spread
+
+
+def weighted_match(right, seen, shares):
+    """The sheet takes extra EM papers, so each tag's result is weighted by how common that tag really is."""
+    tags = [tag for tag in seen if seen[tag]]
+    return sum(shares[tag] * right[tag] / seen[tag] for tag in tags) / sum(shares[tag] for tag in tags)
+
+
 def score_sheet():
     conn = connect()
     with open(SHEET, newline="", encoding="utf-8-sig") as file:
         rows = [row for row in csv.DictReader(file) if row["your_tag"].strip() in TAGS]
     misses = []
+    right = Counter()
+    seen = Counter()
     for row in rows:
         found = conn.execute(
             "SELECT market_focus, tag_reason FROM analyses WHERE paper_id = ?",
             (row["id"],),
         ).fetchone()
-        if found["market_focus"] != row["your_tag"].strip():
+        seen[found["market_focus"]] += 1
+        if found["market_focus"] == row["your_tag"].strip():
+            right[found["market_focus"]] += 1
+        else:
             misses.append((row["title"], row["your_tag"].strip(), found["market_focus"], found["tag_reason"]))
+    counts = conn.execute("SELECT market_focus, COUNT(*) FROM analyses GROUP BY market_focus").fetchall()
     conn.close()
     if not rows:
         print("No hand tags found. Fill in your_tag first.")
         return
     matches = len(rows) - len(misses)
-    print(f"The AI matched you on {matches} of {len(rows)} papers: {matches / len(rows):.0%}")
+    low, high = wilson_interval(matches, len(rows))
+    print(f"The AI matched you on {matches} of {len(rows)} papers: {matches / len(rows):.0%}, 95% range {low:.0%} to {high:.0%}")
+    print("By the AI's tag: " + ", ".join(f"{tag} {right[tag]} of {seen[tag]}" for tag in sorted(seen)))
+    print(f"Weighted by how common each tag is: {weighted_match(right, seen, {row[0]: row[1] for row in counts}):.0%}")
     for title, yours, theirs, reason in misses:
         print(f"- {title}\n  You: {yours}. AI: {theirs}, because: {reason}")
 

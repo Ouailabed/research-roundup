@@ -6,7 +6,7 @@ import pytest
 from bs4 import BeautifulSoup
 
 from src import collect, db
-from src.collect import abstract_on_page, best_first_seen, fill_from_pages, flip_name, is_research, new_paper, paper_from_entry, read_nber_listing, rebuild_abstract
+from src.collect import abstract_on_page, best_first_seen, cut_note, fill_from_pages, flip_name, is_research, new_paper, paper_from_entry, read_nber_listing, rebuild_abstract
 from src.models import clean_abstract, clean_text, clean_url, make_id
 
 SOURCE = {"name": "Sample", "group": "research_body"}
@@ -150,6 +150,19 @@ def test_a_page_that_fails_keeps_the_short_abstract(monkeypatch):
     paper = new_paper(SOURCE, "A paper", "", "We study a made", "https://www.nber.org/papers/w1", "", "")
     fill_from_pages({"name": "NBER", "abstract_from_page": True}, [paper], set())
     assert paper.abstract == "We study a made"
+
+
+def test_abstracts_that_stop_mid_sentence_raise_a_warning():
+    assert "3 of 5 abstracts" in cut_note(["We study", "We find", "We also", "All done.", "Is it? Yes."])
+
+
+def test_full_abstracts_raise_no_warning():
+    assert cut_note(["We study rates.", "Do rates matter?", "It ends (see above)"]) == ""
+    assert cut_note([]) == ""
+
+
+def test_a_long_abstract_with_no_full_stop_is_not_called_cut():
+    assert cut_note(["We study rates " * 40]) == ""
 
 
 def test_a_missing_abstract_is_filled_from_repec(monkeypatch, tmp_path):

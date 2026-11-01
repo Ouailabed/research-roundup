@@ -122,6 +122,10 @@ def count_missing_abstracts(conn, source):
     return conn.execute("SELECT COUNT(*) FROM papers WHERE source = ? AND abstract = ''", (source,)).fetchone()[0]
 
 
+def abstracts_of(conn, source):
+    return [row[0] for row in conn.execute("SELECT abstract FROM papers WHERE source = ? AND abstract <> ''", (source,))]
+
+
 def save_health(conn, rows):
     conn.executemany(
         """INSERT INTO health VALUES

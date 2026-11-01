@@ -26,8 +26,9 @@ def print_table(rows):
     print()
     problems = [row for row in rows if row["status"] == "failed"]
     print(f"{len(rows)} sources, {sum(row['new'] for row in rows)} new papers, {len(problems)} failed")
-    for row in problems:
-        print(f"  {row['source']}: {row['note']}")
+    for row in rows:
+        if row["note"] and row["status"] != "not_covered":
+            print(f"  {row['source']}: {row['note']}")
 
 
 def markdown_table(rows):

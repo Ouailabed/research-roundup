@@ -72,3 +72,20 @@ def test_score_compares_hand_tags_with_the_ai(conn, capsys):
     output = capsys.readouterr().out
     assert "1 of 2 papers: 50%" in output
     assert "You: EM. AI: DM" in output
+    assert "DM 0 of 1, EM 1 of 1" in output
+
+
+def test_a_small_sample_gets_a_wide_range():
+    low, high = compare.wilson_interval(18, 20)
+    assert round(low, 2) == 0.70 and round(high, 2) == 0.97
+
+
+def test_a_perfect_score_on_few_papers_is_not_called_certain():
+    assert compare.wilson_interval(5, 5)[0] < 0.6
+
+
+def test_the_weighted_result_follows_how_common_each_tag_is():
+    right = {"EM": 4, "DM": 6}
+    seen = {"EM": 8, "DM": 6}
+    # DM is 9 times as common here, so its perfect result counts for far more than EM's poor one.
+    assert compare.weighted_match(right, seen, {"EM": 10, "DM": 90}) == pytest.approx(0.95)

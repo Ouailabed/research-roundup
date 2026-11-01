@@ -6,7 +6,7 @@ import feedparser
 from bs4 import BeautifulSoup
 
 from src.config import load_sources
-from src.db import connect, count_missing_abstracts, known_urls, save_health, save_papers
+from src.db import abstracts_of, connect, count_missing_abstracts, known_urls, save_health, save_papers
 from src.dedupe import mark_duplicates
 from src.fetch import contact_email, polite_get, safe_text
 from src.health import print_table
@@ -16,6 +16,8 @@ REPEC_PAPERS_PER_RUN = 30
 BACKFILL_ROWS = 200
 NBER_DOIS = "https://api.crossref.org/prefixes/10.3386/works"
 NBER_LISTING = "https://www.nber.org/api/v1/working_page_listing/contentType/working_paper/_/_/search"
+MOST_CUT = 0.2
+SHORT_ABSTRACT = 400
 # Journals list these next to their papers, but none of them is research.
 NOT_RESEARCH = re.compile(
     r"^(front ?matter|back ?matter|recent referees|jpe turnaround times|report of independent auditor|"
@@ -312,6 +314,19 @@ def fill_from_repec(conn, source):
     conn.commit()
 
 
+def looks_cut(abstract):
+    # Some full abstracts just lack a final full stop, so a cut one has to be short as well.
+    return len(abstract) < SHORT_ABSTRACT and not re.search(r"[.?!)\]\"'”’]$", abstract)
+
+
+def cut_note(abstracts):
+    """A warning if a source's abstracts stop mid-sentence, which is how a shortened feed shows itself."""
+    cut = sum(looks_cut(abstract) for abstract in abstracts)
+    if abstracts and cut / len(abstracts) > MOST_CUT:
+        return f"{cut} of {len(abstracts)} abstracts are short and stop mid-sentence, so check for a fuller route."
+    return ""
+
+
 def collect_source(conn, source, known, run_at):
     row = {
         "run_at": run_at,
@@ -335,6 +350,7 @@ def collect_source(conn, source, known, run_at):
         if source.get("repec_journal"):
             fill_from_repec(conn, source)
         row["missing_abstracts"] = count_missing_abstracts(conn, source["name"])
+        row["note"] = cut_note(abstracts_of(conn, source["name"]))
     except Exception as error:
         row["status"] = "failed"
         row["note"] = safe_text(error)

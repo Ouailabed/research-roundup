@@ -8,9 +8,9 @@ Every week it collects new papers from journals, central banks and research bodi
 - Latest newsletter on its own: https://ouailabed.github.io/research-roundup/issues/2026-10.html
 - Sample issue in this repo: [site/issues/2026-10.html](site/issues/2026-10.html)
 
-| The newsletter | Exploring the papers |
-|---|---|
-| <img src="docs/newsletter.png" alt="The October 2026 newsletter" width="300"> | <img src="docs/explore.png" alt="The Explore papers page" width="480"> |
+| The home page | The newsletter | Exploring the papers |
+|---|---|---|
+| <img src="docs/overview.png" alt="The home page, with the assistant and the 3D map of papers" width="360"> | <img src="docs/newsletter.png" alt="The October 2026 newsletter" width="300"> | <img src="docs/explore.png" alt="The Explore papers page" width="480"> |
 
 ## How it works
 
@@ -131,6 +131,8 @@ A second panel then read 60 new papers and matched on 58: 97%, with a 95% range 
 An earlier check by one AI reader agreed on all 20 of its papers (`data/second_reader_tags.csv`), which shows how much a small sample can flatter. For a human check, `python -m src.compare sheet` makes a sheet of 20 papers to tag by hand, and `python -m src.compare score` compares those tags with the AI's, with a 95% range and a result weighted by how common each tag is.
 
 `python -m src.main check` tests the AI's work against the text it was given. Of 604 summaries, 6 held a number that isn't in the abstract, and all 6 were rounding or simple sums, such as "one-fifth" written as 20 percent. If a tag clashes with the places a paper names, the model looks again, and its second answer stands.
+
+That check only looks at numbers, so an AI audit went further on 2 November. Claude and Codex each compared the 16 published write-ups with their abstracts, and 8 of the 16 held a reversed or unsupported claim. One said less trade would increase the sacrifice ratio when the abstract says it falls by almost half. 3 more were loose. All 11 were corrected using the abstracts' own wording, and the prompt now says to keep each effect's direction. Codex then checked a fixed random sample of 40 of the other 588 short summaries: 33 were clean, 4 were loose and 3 stated something the abstract doesn't support, a 95% range of 3% to 20%. It also called 3 of the 40 tags wrong. The 3 summaries and 2 of the tags were corrected, and the third tag, on 23 European countries, was left as a judgment call. The other 548 short summaries haven't been audited, and the new prompt hasn't been measured yet. This is AI checking AI, so a person should read each issue before it goes out.
 
 Each month's selection works like an editor's desk. A score alone can't pick the issue: in October 121 of 293 papers scored 9 or 10, and the two models use the scale a little differently. So `openai/gpt-oss-120b` reads every paper scoring 9 or 10, in groups of 40, and ranks the ones most useful to a markets team. The issue takes the top of that ranking, at most 2 papers per source, with a mix of EM, DM and Transversal where possible. It also writes a short opening note on what the papers tell the team. A paper belongs to the month it was first seen, because published dates are unreliable. The backfilled September and October issues are the exception: they use the best date each source gives. Once chosen, an issue's list is saved, so the same month always gives the same issue.
 

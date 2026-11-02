@@ -10,7 +10,7 @@ Every week it collects new papers from journals, central banks and research bodi
 
 | The newsletter | Exploring the papers |
 |---|---|
-| <img src="docs/newsletter.png" alt="The October 2026 newsletter" width="360"> | <img src="docs/explore.png" alt="The Explore papers page" width="480"> |
+| <img src="docs/newsletter.png" alt="The October 2026 newsletter" width="300"> | <img src="docs/explore.png" alt="The Explore papers page" width="480"> |
 
 ## How it works
 

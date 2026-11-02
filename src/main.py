@@ -5,7 +5,7 @@ from src.analyse import analyse_all
 from src.check import check_all
 from src.collect import backfill, collect_all, collect_is_due
 from src.db import connect, latest_health
-from src.factcheck import have_checker_key, measure
+from src.factcheck import CheckerUnavailable, have_checker_key, measure
 from src.health import markdown_table
 from src.issue import build_issue, build_missing_issues, work_left
 from src.publish import publish_site
@@ -59,7 +59,10 @@ def main():
         check_all()
     elif arguments.command == "fact-check-test":
         if have_checker_key():
-            measure(load_settings()["models"]["checker"])
+            try:
+                measure(load_settings()["models"]["checker"])
+            except CheckerUnavailable as error:
+                raise SystemExit(f"The checker can't be used: {error}. A 429 with credit_balance_exhausted means the OpenAI account needs credit.") from None
         else:
             print("No OPENAI_API_KEY found, so there is nothing to measure.")
     elif arguments.command == "backfill":

@@ -105,8 +105,23 @@ def test_a_long_list_goes_through_in_groups():
 
 def test_numbers_the_editor_made_up_are_ignored():
     rows = [paper_row(number) for number in range(1, 13)]
-    order = editor_order(rows, "model", Editor(lambda shown: [99, 0, 3, 3]))
-    assert len([row for row in order if row[3] > -500]) == 1
+    order = editor_order(rows, "model", Editor(lambda shown: [99, 0, 3, 3, *last_first(shown)]))
+    assert len([row for row in order if row[3] > -500]) == 12
+
+
+def test_a_short_ranking_is_asked_for_again():
+    rows = [paper_row(number) for number in range(1, 13)]
+    answers = iter([[1], list(range(12, 0, -1))])
+    editor = Editor(lambda shown: next(answers))
+    order = editor_order(rows, "model", editor)
+    assert editor.calls == [12, 12]
+    assert len([row for row in order if row[3] > -500]) == 12
+
+
+def test_two_short_rankings_mean_the_plain_scores_decide(capsys):
+    rows = [paper_row(number) for number in range(1, 13)]
+    assert editor_order(rows, "model", Editor(lambda shown: [1])) == rows
+    assert "plain scores" in capsys.readouterr().out
 
 
 def test_no_usable_answer_means_the_plain_scores_decide(monkeypatch, capsys):
@@ -119,7 +134,7 @@ def test_no_usable_answer_means_the_plain_scores_decide(monkeypatch, capsys):
 def test_the_editor_waits_out_the_daily_limit(monkeypatch, capsys):
     rows = [paper_row(number) for number in range(1, 13)]
     naps = []
-    answers = iter([DailyLimitReached("the model has used up today's allowance", 110), Ranking(ranking=[2, 1])])
+    answers = iter([DailyLimitReached("the model has used up today's allowance", 110), Ranking(ranking=list(range(12, 0, -1)))])
 
     def next_answer(*args):
         answer = next(answers)
@@ -131,7 +146,7 @@ def test_the_editor_waits_out_the_daily_limit(monkeypatch, capsys):
     monkeypatch.setattr(issue.time, "sleep", naps.append)
     order = editor_order(rows, "model", Editor(last_first))
     assert naps == [110]
-    assert len([row for row in order if row[3] > -500]) == 2
+    assert len([row for row in order if row[3] > -500]) == 12
 
 
 def test_an_issue_with_no_opening_note_yet_is_finished_on_a_later_run(month_of_papers, monkeypatch):

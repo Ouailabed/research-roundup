@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from src.ai import groq_client, have_key, load_settings
 from src.check import tag_conflict
-from src.db import connect, papers_to_analyse, save_analysis
+from src.db import connect, papers_to_analyse, save_analysis, save_failure
 
 LONGEST_ABSTRACT = 2500
 MOST_OUTAGES = 3
@@ -24,6 +24,8 @@ ADVANCED_NOTE = (
 RULES = f"""You help a markets research team at an investment bank find useful economics papers.
 
 Use only the title, abstract and metadata you are given. Never add findings, numbers, names or places that are not there. If the abstract does not say something, leave it out.
+
+Keep every effect in the direction the abstract gives it, and keep words like "at least" or "almost". If the abstract only says a paper has implications for something, say that and no more. Never add a policy conclusion of your own.
 
 Choose market_focus with these rules. Advanced economies are exactly the ones on the IMF's list of April 2026: {", ".join(ADVANCED_NOTE)}. The euro area counts as advanced. Every other country counts as emerging, including Chile, China, Hungary, Mexico, Poland and Romania.
 - DM: mainly about advanced economies.
@@ -184,6 +186,9 @@ def analyse_all(limit=None):
             done += 1
             if done % 25 == 0:
                 print(f"{done} done", flush=True)
+        else:
+            save_failure(conn, paper["id"])
+            print(f"No usable answer for {paper['id']}, so this try is logged.")
     print(f"Analysed {done} papers")
     conn.close()
 

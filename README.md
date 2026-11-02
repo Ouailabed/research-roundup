@@ -112,7 +112,7 @@ The rules for every source: feeds and official APIs first, respect `robots.txt`,
 
 ## How the analysis and tags work
 
-The AI reads only each paper's title, abstract and metadata. The prompt tells it never to add findings or numbers. Its answer must match a fixed JSON shape, which `pydantic` checks. A bad answer is retried once, then skipped and logged.
+The AI reads only each paper's title, abstract and metadata. The prompt tells it never to add findings or numbers. Its answer must match a fixed JSON shape, which `pydantic` checks. A bad answer is retried once and logged, and a paper that fails on 3 separate runs is skipped.
 
 Tags follow one rule set, based on the IMF's list of 43 advanced economies:
 

@@ -31,6 +31,8 @@ One line for every choice: what we chose and why.
 - A crash partway through a job still saves what it finished, because the save step runs anyway. Scores are written one paper at a time, so nothing done before the crash is lost.
 - A paper that keeps failing its write-up leaves that issue, so it can't block the month for ever. If fewer than 5 papers remain, the month is chosen again.
 - While work is left, the catch-up job waits 2 hours and starts its own next run, because a manual start always works. A run that makes no progress stops the chain, so it can't loop for ever.
+- A review by Codex found two faults, both fixed on 2 November. A paper with no usable answer came back on every run and could hold up its issue, so it now gets 3 runs and is then skipped. The editor's ranking was accepted however short it was, so a short one is now asked for again, and after that the plain scores decide.
+- Every catch-up run that saves work now starts the publish job itself. On 1 November the last run of a chain built October and saved it, but the site stayed on the old issue until the publish job was started by hand, because only a run with work left started it.
 - The catch-up job also collects if no run has for a week, so a skipped weekly run costs a few days rather than a whole week.
 - Python 3.14 on the laptop, in GitHub Actions and on Streamlit Community Cloud, so all three behave the same.
 - Feeds and official APIs come first, because they are stable and allowed. Scraping is a last resort.

@@ -23,6 +23,7 @@ jobs:
       CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
     outputs:
       again: ${{ steps.save.outputs.again }}
+      saved: ${{ steps.save.outputs.saved }}
     steps:
       - uses: actions/checkout@v4
         # A run that waited its turn must start from the newest database, not the one it was queued with.
@@ -50,9 +51,22 @@ jobs:
           git commit -m "Catch up: more papers scored"
           git pull --rebase
           git push
+          echo "saved=yes" >> "$GITHUB_OUTPUT"
           if [ "$(python -m src.main left)" != "0" ]; then
             echo "again=yes" >> "$GITHUB_OUTPUT"
           fi
+
+  # The last run of a chain built October on 1 November, and nothing started the publish job, so every run that saves work starts it here.
+  publish:
+    needs: catch-up
+    if: needs.catch-up.outputs.saved == 'yes'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY"
 
   # GitHub's cron can be late or skip a run, so while work is left this job starts the next run itself.
   again:
@@ -64,8 +78,6 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Show this run's results on the site
-        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY"
       - name: Give Groq's allowance 2 hours to refill
         run: sleep 7200
       - name: Start the next run

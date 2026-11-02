@@ -1,5 +1,7 @@
 import re
 
+import yaml
+
 from src import db, publish
 from src.config import ROOT
 from src.models import no_em_dash
@@ -66,6 +68,13 @@ def test_the_page_loads_nothing_from_another_site():
     assert re.findall(r"<(?:script|link|img|iframe)[^>]+(?:src|href)=[\"']https?:", page) == []
     assert re.findall(r"fetch\([\"']https?:", page) == []
     assert "@import" not in page
+
+
+def test_a_catch_up_run_that_saves_work_always_publishes_it():
+    # This used to depend on work being left, so the run that finished an issue never published it.
+    jobs = yaml.safe_load((ROOT / ".github" / "workflows" / "catch-up.yml").read_text(encoding="utf-8"))["jobs"]
+    assert jobs["publish"]["if"] == "needs.catch-up.outputs.saved == 'yes'"
+    assert "pages.yml" in jobs["publish"]["steps"][0]["run"]
 
 
 def test_no_page_name_is_also_an_element_id():

@@ -60,6 +60,21 @@ def test_old_papers_are_left_out(conn):
     assert db.papers_to_analyse(conn, "2026-09-01") == []
 
 
+def test_a_paper_stays_in_the_queue_until_its_last_try(conn):
+    db.save_papers(conn, [make_paper("a")])
+    for _ in range(db.MOST_TRIES - 1):
+        db.save_failure(conn, "a")
+    assert [row["id"] for row in db.papers_to_analyse(conn, "2026-09-01")] == ["a"]
+
+
+def test_a_paper_that_keeps_failing_is_dropped_and_stops_holding_up_its_issue(conn):
+    db.save_papers(conn, [make_paper("a")])
+    for _ in range(db.MOST_TRIES):
+        db.save_failure(conn, "a")
+    assert db.papers_to_analyse(conn, "2026-09-01") == []
+    assert db.count_unscored(conn, "2026-10") == 0
+
+
 def test_unscored_papers_are_counted_by_month(conn):
     db.save_papers(conn, [make_paper("a"), make_paper("b"), make_paper("c", first_seen="2026-09-05")])
     db.save_analysis(conn, "a", "cheap", RESULT)

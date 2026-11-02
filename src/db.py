@@ -83,6 +83,17 @@ CREATE TABLE IF NOT EXISTS overviews (
 )
 """
 
+FAILURES_SCHEMA = """
+CREATE TABLE IF NOT EXISTS failures (
+    paper_id TEXT PRIMARY KEY,
+    tries INTEGER,
+    last_tried TEXT
+)
+"""
+
+# After this many runs a paper is skipped, or it would come back for ever and could hold up its issue.
+MOST_TRIES = 3
+
 
 def connect():
     conn = sqlite3.connect(DB_PATH)
@@ -93,6 +104,7 @@ def connect():
     conn.execute(WRITEUPS_SCHEMA)
     conn.execute(ISSUES_SCHEMA)
     conn.execute(OVERVIEWS_SCHEMA)
+    conn.execute(FAILURES_SCHEMA)
     # A database made before this column existed needs it added.
     columns = {row["name"] for row in conn.execute("PRAGMA table_info(papers)")}
     if "duplicate_of" not in columns:
@@ -145,8 +157,9 @@ def papers_to_analyse(conn, since):
         """SELECT id, title, authors, abstract, source FROM papers
         WHERE abstract <> '' AND duplicate_of IS NULL AND first_seen >= ?
         AND id NOT IN (SELECT paper_id FROM analyses)
+        AND id NOT IN (SELECT paper_id FROM failures WHERE tries >= ?)
         ORDER BY first_seen DESC, id""",
-        (since,),
+        (since, MOST_TRIES),
     ).fetchall()
 
 
@@ -154,9 +167,19 @@ def count_unscored(conn, month):
     return conn.execute(
         """SELECT COUNT(*) FROM papers
         WHERE abstract <> '' AND duplicate_of IS NULL AND substr(first_seen, 1, 7) = ?
-        AND id NOT IN (SELECT paper_id FROM analyses)""",
-        (month,),
+        AND id NOT IN (SELECT paper_id FROM analyses)
+        AND id NOT IN (SELECT paper_id FROM failures WHERE tries >= ?)""",
+        (month, MOST_TRIES),
     ).fetchone()[0]
+
+
+def save_failure(conn, paper_id):
+    conn.execute(
+        """INSERT INTO failures (paper_id, tries, last_tried) VALUES (?, 1, ?)
+        ON CONFLICT (paper_id) DO UPDATE SET tries = tries + 1, last_tried = excluded.last_tried""",
+        (paper_id, right_now()),
+    )
+    conn.commit()
 
 
 def right_now():

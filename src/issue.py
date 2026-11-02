@@ -102,20 +102,29 @@ def editor_text(rows):
     )
 
 
-def ask_editor(client, model, rows, keep):
-    """Returns the rows the editor kept, best first, or None if it gave no usable answer."""
+def editor_answer(client, model, rows, keep):
     while True:
         try:
-            answer = checked_answer(client, model, EDITOR_RULES.format(keep=keep), editor_text(rows), Ranking, "the editor")
-            break
+            return checked_answer(client, model, EDITOR_RULES.format(keep=keep), editor_text(rows), Ranking, "the editor")
         except DailyLimitReached as error:
             # The ranking only counts once every group is done, so stopping here would waste the calls before it.
             print(f"{error}, so the editor waits {error.seconds:.0f} seconds.", flush=True)
             time.sleep(error.seconds)
-    if not answer:
-        return None
-    numbers = dict.fromkeys(number for number in answer.ranking if 1 <= number <= len(rows))
-    return [rows[number - 1] for number in numbers][:keep] or None
+
+
+def ask_editor(client, model, rows, keep):
+    """Returns the rows the editor kept, best first, or None if it gave no usable answer."""
+    wanted = min(keep, len(rows))
+    for attempt in (1, 2):
+        answer = editor_answer(client, model, rows, keep)
+        if not answer:
+            return None
+        numbers = dict.fromkeys(number for number in answer.ranking if 1 <= number <= len(rows))
+        if len(numbers) >= wanted:
+            return [rows[number - 1] for number in numbers][:keep]
+        # A short list would leave the other papers unjudged, below every paper it did name.
+        print(f"The editor ranked {len(numbers)} of {wanted} papers, attempt {attempt}")
+    return None
 
 
 def mixed(rows):

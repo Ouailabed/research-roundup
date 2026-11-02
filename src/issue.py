@@ -33,7 +33,7 @@ from src.db import (
     saved_overview,
     writeup_of,
 )
-from src.factcheck import CheckerUnavailable, check_writeup, have_checker_key
+from src.factcheck import CheckerUnavailable, check_writeup
 from src.models import no_em_dash
 
 MIN_PAPERS = 5
@@ -218,10 +218,10 @@ def write_up(conn, month, paper_ids, model):
 
 
 def fact_check(conn, month, model):
-    """A second AI checks each write-up against its abstract. Returns its name only if every one passed, so the newsletter can say so."""
+    """A second pass checks each write-up against its abstract. Returns the model only if every one passed, so the newsletter can say so."""
     paper_ids = saved_issue(conn, month)
-    if not model or not have_checker_key():
-        print("No OPENAI_API_KEY found, so the write-ups were not fact-checked.")
+    if not model or not have_key():
+        print("No checker model or no GROQ_API_KEY, so the write-ups were not fact-checked.")
         return None
     changed = False
     for paper_id in paper_ids:

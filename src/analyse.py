@@ -59,6 +59,24 @@ class Analysis(Score):
     why_it_matters: str = Field(description="Why this matters for a markets research team.")
 
 
+class Problem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    field: Literal["summary", "takeaway 1", "takeaway 2", "takeaway 3", "why_it_matters"]
+    kind: Literal["backwards", "invented", "loose"]
+    write_up_says: str
+    abstract_says: str
+
+
+class Check(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    problems: list[Problem]
+    summary: str = Field(min_length=1)
+    takeaways: list[str] = Field(min_length=3, max_length=3)
+    why_it_matters: str = Field(min_length=1)
+
+
 class Ranking(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -71,9 +89,9 @@ class Overview(BaseModel):
     overview: str = Field(description="Two or three plain sentences.")
 
 
-LONGEST_ANSWER = {Score: 800, Analysis: 2000, Ranking: 2500, Overview: 1000}
+LONGEST_ANSWER = {Score: 800, Analysis: 2000, Ranking: 2500, Overview: 1000, Check: 4000}
 # These models think before they answer, and that counts towards the limit. Scoring doesn't need much of it.
-THINKING = {Score: "low", Ranking: "medium"}
+THINKING = {Score: "low", Ranking: "medium", Check: "medium"}
 
 
 class DailyLimitReached(Exception):

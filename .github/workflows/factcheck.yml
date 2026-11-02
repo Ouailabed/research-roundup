@@ -1,6 +1,7 @@
 name: Measure the fact-checker
 
 # Runs the checker on 16 write-ups that Claude and Codex audited, and prints how far it agrees.
+# It uses Groq's free tier, so it costs nothing.
 # It saves nothing, so it can run at any time.
 on:
   workflow_dispatch:
@@ -12,7 +13,7 @@ jobs:
   measure:
     runs-on: ubuntu-latest
     env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

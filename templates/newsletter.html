@@ -96,7 +96,7 @@
         <tr>
           <td class="footer">
             <p><strong>How papers are chosen.</strong> {{ selection_note }}</p>
-            {% if checked_by %}<p><strong>Checked.</strong> A second AI, {{ checked_by }}, compared each write-up with its abstract before this issue went out.</p>{% endif %}
+            {% if checked_by %}<p><strong>Checked.</strong> A separate checking step, run by {{ checked_by }}, compared each write-up with its abstract before this issue went out. It is AI checking AI, so it can miss things.</p>{% endif %}
             <p><strong>Sources.</strong> This issue drew on {{ source_count }} sources: the five leading economics journals, G10 and European central banks, the 12 regional Federal Reserve banks, NBER, BPEA, the IMF and the BIS.</p>
             <p>Summaries are written by AI from each paper's title and abstract only. Always check the paper itself before relying on a result.</p>
             <p><a href="{{ site_url }}" target="_blank" rel="noopener">Read past issues and explore every paper</a></p>

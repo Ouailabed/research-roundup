@@ -1,7 +1,12 @@
 import pytest
 
+from src import factcheck
+
 
 @pytest.fixture(autouse=True)
 def no_real_checker(monkeypatch):
-    # A key set on this computer must never make a test call the real checker and spend money.
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    # A test must never reach the real checker, even on a computer with a Groq key set.
+    def refuse():
+        pytest.fail("a test tried to call Groq for the fact-check")
+
+    monkeypatch.setattr(factcheck, "groq_client", refuse)

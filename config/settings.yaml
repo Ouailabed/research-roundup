@@ -6,8 +6,9 @@ models:
     - openai/gpt-oss-20b
     - openai/gpt-oss-120b
   strong: openai/gpt-oss-120b
-  # A model from another company checks each write-up against its abstract, on OpenAI.
-  checker: gpt-6-luna
+  # Checks each write-up against its abstract. Of three free Groq models it agreed best with the
+  # 2 November audit, though it is the same model that writes the write-ups. See the README.
+  checker: openai/gpt-oss-120b
 
 # Papers first seen before this date are kept but not analysed.
 analyse_from: "2026-09-01"

@@ -12,8 +12,11 @@ from src.ai import groq_client, have_key, load_settings
 from src.analyse import Analysis, DailyLimitReached, Overview, Ranking, analyse_paper, checked_answer
 from src.config import ROOT
 from src.db import (
+    check_status,
     clear_issue,
+    clear_overview,
     connect,
+    correct_writeup,
     count_unscored,
     has_writeup,
     issue_candidates,
@@ -25,9 +28,12 @@ from src.db import (
     save_issue,
     save_overview,
     save_writeup,
+    save_check,
     saved_issue,
     saved_overview,
+    writeup_of,
 )
+from src.factcheck import CheckerUnavailable, check_writeup, have_checker_key
 from src.models import no_em_dash
 
 MIN_PAPERS = 5
@@ -37,6 +43,9 @@ MAX_PER_SOURCE = 2
 MOST_LEFT_UNSCORED = 5
 FOCUSES = ("EM", "DM", "Transversal")
 STOPPED = "stopped at the daily limit"
+# A paper with one of these needs no second check. "no answer" is tried again next time, and "audited"
+# marks the write-ups Claude and Codex corrected on 2 November, so they aren't rewritten again.
+DONE_CHECKS = ("clean", "corrected", "unresolved", "audited")
 # Scores bunch at 9, so the editor reads everything from here up.
 EDITOR_SCORE = 9
 # A group of 40 fits inside the model's 8,000 tokens a minute.
@@ -208,6 +217,41 @@ def write_up(conn, month, paper_ids, model):
     return True
 
 
+def fact_check(conn, month, model):
+    """A second AI checks each write-up against its abstract. Returns its name only if every one passed, so the newsletter can say so."""
+    paper_ids = saved_issue(conn, month)
+    if not model or not have_checker_key():
+        print("No OPENAI_API_KEY found, so the write-ups were not fact-checked.")
+        return None
+    changed = False
+    for paper_id in paper_ids:
+        if check_status(conn, paper_id) in DONE_CHECKS:
+            continue
+        writeup = writeup_of(conn, paper_id)
+        try:
+            kept, status, problems = check_writeup(paper_by_id(conn, paper_id), writeup, model)
+        except CheckerUnavailable as error:
+            # The issue still goes out, because a newsletter a day late is worse than one without this check.
+            print(f"The fact-checker can't be used: {error}. The rest of this issue goes out unchecked.")
+            return None
+        before = {key: writeup[key] for key in kept}
+        if status == "corrected":
+            correct_writeup(conn, paper_id, kept, f"{writeup['model']} (corrected by {model} against the abstract)")
+            changed = True
+        elif status == "unresolved":
+            if kept != before:
+                correct_writeup(conn, paper_id, kept, f"{writeup['model']} (partly corrected by {model}, the rest not confirmed)")
+                changed = True
+            print(f"Fact-check unresolved for {paper_id}. Read it before this issue goes out.")
+        save_check(conn, paper_id, model, status, problems)
+        print(f"Fact-check {status}: {paper_id}")
+    if changed:
+        # The opening note was written from the old text, so it is written again from the corrected one.
+        clear_overview(conn, month)
+    passed = all(check_status(conn, paper_id) in ("clean", "corrected") for paper_id in paper_ids)
+    return model if passed else None
+
+
 def write_overview(conn, month, papers, model):
     """The issue's opening note. With no key or no usable answer, the issue builds without one."""
     saved = saved_overview(conn, month)
@@ -237,11 +281,12 @@ def issue_context(rows):
     return papers
 
 
-def render_issue(month, papers, paper_count, source_count, overview=""):
+def render_issue(month, papers, paper_count, source_count, overview="", checked_by=None):
     environment = Environment(loader=FileSystemLoader(ROOT / "templates"), autoescape=select_autoescape(["html"]))
     html = environment.get_template("newsletter.html").render(
         month_label=month_label(month),
         overview=overview,
+        checked_by=checked_by,
         intro=(
             f"This month the agent read {paper_count} new papers from {source_count} sources. "
             f"These {len(papers)} stood out for a markets research team."
@@ -279,6 +324,7 @@ def build_issue(month=None):
         if not write_up(conn, month, saved_issue(conn, month), models["strong"]):
             conn.close()
             return None
+        checked_by = fact_check(conn, month, models.get("checker"))
         papers = issue_context(issue_papers(conn, month))
         overview = write_overview(conn, month, papers, models["strong"])
     except DailyLimitReached as error:
@@ -289,7 +335,7 @@ def build_issue(month=None):
     conn.close()
     ISSUE_FOLDER.mkdir(parents=True, exist_ok=True)
     path = ISSUE_FOLDER / f"{month}.html"
-    path.write_text(render_issue(month, papers, paper_count, source_count, overview), encoding="utf-8")
+    path.write_text(render_issue(month, papers, paper_count, source_count, overview, checked_by), encoding="utf-8")
     print(f"Built {path.relative_to(ROOT)} with {len(papers)} papers")
     return path
 

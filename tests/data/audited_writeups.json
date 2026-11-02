@@ -1,0 +1,210 @@
+[
+ {
+  "month": "2026-09",
+  "title": "This Time Is (Mostly) Different: U.S. Tightening Cycles and Global Resilience in the 1980s vs 2020s",
+  "abstract": "Post-pandemic inflation raised fears that U.S. monetary tightening would trigger a repeat of the 1982 sudden stop in capital flows to emerging economies. Yet as of 2026 no global recession has followed. We establish three stylized facts distinguishing the 1980s from the 2020s, beyond the shift to flexible exchange rates: monetary policy effectiveness, fiscal space, and external vulnerabilities. We rationalize them in a Mundell-Fleming framework with a fiscal space constraint, which predicts a central role for fiscal space in transmitting foreign currency risk-free rate increases. Cross-country evidence confirms that fiscal space shapes economic performance post-tightening.",
+  "summary": "The paper asks whether the post‑pandemic tightening cycle in the United States could repeat the 1982 sudden stop in capital flows to emerging markets. Using a Mundell‑Fleming model with a fiscal‑space constraint and cross‑country data, the authors identify three stylised facts that differentiate the 1980s from the 2020s: monetary policy effectiveness, fiscal space, and external vulnerabilities. They show that fiscal space is a key channel through which higher foreign‑currency risk‑free rates affect economic performance after tightening. The evidence suggests that ample fiscal space has helped prevent a global recession despite tighter U.S. policy.",
+  "takeaways": [
+   "Fiscal space strongly influences how economies respond to higher foreign‑currency rates after monetary tightening.",
+   "Monetary policy effectiveness and external vulnerabilities differ markedly between the 1980s and 2020s.",
+   "The cross‑country evidence supports the model prediction that fiscal capacity buffers against global recession."
+  ],
+  "why_it_matters": "Understanding how U.S. rate hikes propagate globally helps the markets team assess currency risk, emerging‑market debt exposure, and the likelihood of a synchronized slowdown, informing investment and risk‑management decisions.",
+  "audit": "serious"
+ },
+ {
+  "month": "2026-09",
+  "title": "Equilibrium Yield Curves and the Interest Rate Lower Bound",
+  "abstract": "We present a calibrated DSGE model with an occasionally binding effective lower bound (ELB) constraint on the short-term nominal rate that matches key features of the macroeconomy and the term structure of interest rates in the United States. We show that the ELB constraint induces state dependency in term premiums by affecting macroeconomic uncertainty and interest rate sensitivity to economic activity, typically lowering the absolute size of term premiums and generating distinct dynamics near the ELB. The central bank's forward guidance at the ELB lowers the expected short-rate path, but increases or decreases term premiums depending on whether demand or supply shocks are dominant.",
+  "summary": "The paper asks how an occasionally binding effective lower bound (ELB) influences the shape of yield curves. It builds a calibrated DSGE model for the United States that matches macroeconomic data and the term structure of interest rates. The model finds that the ELB creates state‑dependent term premiums that are generally smaller, and that forward guidance at the ELB can raise or lower premiums depending on whether demand or supply shocks dominate.",
+  "takeaways": [
+   "The ELB induces state‑dependent term premiums, typically reducing their size.",
+   "Forward guidance at the ELB can increase or decrease term premiums depending on the dominant shock type.",
+   "The calibrated DSGE model reproduces key U.S. macro and yield‑curve features, underscoring the ELB's importance for policy analysis."
+  ],
+  "why_it_matters": "Understanding how the ELB and forward guidance affect term premiums and yield curves helps forecast bond yields, price interest‑rate risk, and assess the impact of central‑bank policy on financial markets.",
+  "audit": "clean"
+ },
+ {
+  "month": "2026-09",
+  "title": "Expectations and the Term Structure of Interest Rates",
+  "abstract": "This paper studies the relationship between subjective expectations and the term structure of interest rates. Departing from rational expectations, we allow market participants to hold arbitrary beliefs about future interest rates, and derive the condition that expected and realized interest rates must satisfy irrespective of how expectations are formed. We use this condition to decompose the sensitivity of long-term yields to the short-term interest rate into contributions from expectations and risk premia, without imposing any assumption on expectation formation. We find that, for short- and medium-maturity bonds, this sensitivity is driven primarily by movements in expectations rather than risk premia. We then study the sensitivity of expectations themselves and document systematic wedges between the response of long-term yield expectations and that of expectations of shorter-maturity yields over the same window. We argue that these wedges reflect structural inconsistency in subjective expectations, in the sense that expectations across maturities and forecast horizons are inconsistent with the equilibrium restrictions that link different interest rates.",
+  "summary": "The paper examines how subjective expectations shape the term structure of interest rates, allowing for arbitrary belief formation. It derives a universal condition linking expected and realized rates and uses it to decompose long‑term yield sensitivity into expectation and risk‑premia components. The authors find that for short‑ and medium‑maturity bonds, movements are driven mainly by changes in expectations rather than risk premia, and they document systematic wedges between expectations of yields across different maturities, indicating inconsistencies in subjective forecasts.",
+  "takeaways": [
+   "A universal condition linking expected and realized interest rates holds regardless of how expectations are formed",
+   "Yield changes for short‑ and medium‑term bonds are primarily driven by expectation shifts, not risk premia",
+   "Systematic wedges between expectations of long‑term and short‑term yields reveal inconsistencies across maturities"
+  ],
+  "why_it_matters": "Understanding whether yield movements stem from expectation changes or risk premia helps the markets team forecast interest‑rate paths, price bonds, and assess the impact of monetary‑policy signals on various segments of the fixed‑income market.",
+  "audit": "clean"
+ },
+ {
+  "month": "2026-09",
+  "title": "Globalization, Inflation Dynamics and the Slope of the Phillips Curve",
+  "abstract": "We study how international trade has affected U.S. inflation dynamics. We develop a multi-region New Keynesian model of an open monetary union in which regional Phillips curve slopes depend on exposure to imported goods. Guided by the model, we construct state-level measures of import penetration in final consumption and exploit cross-state variation to estimate regional Phillips curves over 1976-2017. Greater import exposure leads to significantly flatter state-level Phillips curves. We estimate that rising import exposure accounts for roughly 40 percent of the flattening of the U.S. Phillips curve over this period. Increased import exposure also shifted the U.S. Phillips curve downward, reducing inflation by about 0.17 percentage point annually between 1976 and 2008. A reversal of globalization to early-1990s levels would substantially alter monetary policy trade-offs, reducing the sacrifice ratio by almost one-half. Our findings show that international trade has played a quantitatively important role in shaping U.S. inflation dynamics.",
+  "summary": "The paper asks how international trade has shaped U.S. inflation and the slope of the Phillips curve. Using a multi‑region New Keynesian model, the authors build state‑level measures of import penetration and estimate regional Phillips curves for 1976‑2017. They find that higher import exposure flattens the Phillips curve and accounts for about 40 % of its recent flattening, also lowering inflation by roughly 0.17 percentage point per year. A return to 1990s‑level globalization would halve the sacrifice ratio, altering monetary‑policy trade‑offs.",
+  "takeaways": [
+   "Greater import exposure significantly flattens state‑level Phillips curves in the United States.",
+   "Rising import penetration explains roughly 40 % of the observed flattening of the U.S. Phillips curve since the 1970s.",
+   "Reduced trade exposure would increase the sacrifice ratio, changing the trade‑off between inflation and output for monetary policy."
+  ],
+  "why_it_matters": "Understanding how trade‑driven flattening of the Phillips curve affects inflation dynamics helps central banks and investors gauge the effectiveness of monetary policy, forecast inflation trends, and assess the impact of changes in globalization on interest‑rate expectations.",
+  "audit": "serious"
+ },
+ {
+  "month": "2026-09",
+  "title": "Pricing Risk Globally: Intermediary Constraints, the Dollar, and the Global Financial Cycle",
+  "abstract": "We study how increased uncertainty about U.S. asset returns affects global asset prices and exchange rates in a two-country model with intermediary balance-sheet constraints. Empirically, uncertainty shocks widen global credit spreads, appreciate the dollar, and increase currency risk premia. In our model, higher uncertainty tightens intermediary constraints and lowers asset prices, reversing the counterfactual asset price increase in frictionless models. Because constraints make net worth especially valuable in bad times, risk premia respond strongly to uncertainty shocks. This interaction allows the model to match the credit spread, currency premium, and dollar responses in the data.",
+  "summary": "The paper asks how heightened uncertainty about U.S. asset returns feeds through to global asset prices and exchange rates. Using a two‑country model with intermediary balance‑sheet constraints and an empirical analysis of uncertainty shocks, the authors show that such shocks widen global credit spreads, lift the dollar and increase currency risk premia. The model explains these movements by tighter intermediary constraints that make net worth valuable in bad times, leading to lower asset prices. The results match observed responses of credit spreads, the dollar and currency premiums.",
+  "takeaways": [
+   "Uncertainty shocks about U.S. asset returns widen global credit spreads.",
+   "These shocks appreciate the dollar and raise currency risk premia.",
+   "Intermediary balance‑sheet constraints amplify the effects, lowering asset prices in the model."
+  ],
+  "why_it_matters": "Understanding how U.S. uncertainty shocks affect the dollar, credit spreads and currency risk premia helps the markets team price risk, forecast asset‑price movements and assess the impact of global financial cycle dynamics on portfolios.",
+  "audit": "clean"
+ },
+ {
+  "month": "2026-09",
+  "title": "Maritime chokepoints and the global economy: evidence from the Strait of Hormuz",
+  "abstract": "The conflict in the Middle East and the subsequent disruption of traffic in the Strait of Hormuz have triggered an unprecedented shock to the global economy. Using historical data from the IMF/University of Oxford Portwatch database on maritime traffic, this paper empirically examines some of the potential economic and financial consequences of disruptions to traffic in the Strait of Hormuz. The analysis highlights the role of this chokepoint as a global supply indicator, with traffic disruptions acting as a global stagflation-inducing force. While commodity prices — especially energy prices — tend to increase after an adverse shock to traffic in the Strait of Hormuz, such negative shocks are systematically followed by a combination of lower global output and higher global consumer prices. In addition, negative shocks to traffic in the Strait of Hormuz tighten financial conditions, with spreads on both advanced economies (AEs) corporate bonds and emerging market economies (EMEs) sovereign bonds widening significantly. These findings underscore the Strait of Hormuz’s critical role in the global economy and highlight avenues for future research on chokepoint shocks.",
+  "summary": "The paper asks how traffic disruptions in the Strait of Hormuz affect the global economy. It uses historical maritime traffic data from the IMF/University of Oxford Portwatch database to estimate the impact of chokepoint shocks. The analysis finds that negative shocks raise energy and other commodity prices, depress global output and lift consumer inflation, and tighten financial conditions by widening corporate bond spreads in advanced economies and sovereign spreads in emerging markets.",
+  "takeaways": [
+   "Disruptions in the Strait of Hormuz increase energy and other commodity prices.",
+   "Negative shocks lead to lower global output and higher consumer inflation, creating stagflation pressures.",
+   "Financial conditions tighten, with wider spreads on advanced economies corporate bonds and emerging market sovereign bonds."
+  ],
+  "why_it_matters": "Understanding how chokepoint shocks affect commodity prices, inflation, and credit spreads helps the markets team assess risks to rates, currencies, and credit markets and inform trading and risk‑management decisions.",
+  "audit": "loose"
+ },
+ {
+  "month": "2026-09",
+  "title": "Systemic at Home: the Persistence of a Too-Big-to-Fail Premium in Europe",
+  "abstract": "We quantify the implicit too-big-to-fail (TBTF) funding advantage of large Eu-ropean banks using CDS market data. Applying a reduced-form asset pricing frame-work, we decompose spreads into a fundamental credit-risk component and a resid-ual wedge attributable to implicit government support. We do not find evidence that G-SIB designation is associated with lower funding costs once bank funda-mentals and sovereign factors are taken into account. By contrast, banks whose assets exceed half of home-country GDP enjoy at least 30% lower credit spreads than those of otherwise comparable peers. A time-varying specification reveals that the TBTF wedge persists through 2024, and while average spreads are significantly lower across the board compared to the period around the Great Financial Crisis, the implicit bailout guarantee as a proportion of total spreads has not diminished in recent years. Moreover, the results suggest that the TBTF premium depends on sovereign fiscal strength: the funding advantage of systemic banks declines when home-sovereign CDS spreads rise. This points to Europe’s TBTF problem being primarily domestic in nature and relates to the strength of the home sovereign.",
+  "summary": "The authors quantify the implicit too‑big‑to‑fail funding advantage of large European banks using CDS market data. Using a reduced‑form asset‑pricing model they separate credit‑risk components from a residual TBTF wedge. They find that banks with assets larger than half of their home‑country GDP enjoy about 30 % lower credit spreads, and that this TBTF premium persists through 2024 and varies with sovereign fiscal strength.",
+  "takeaways": [
+   "Large European banks have a funding advantage of roughly 30% lower CDS spreads when their assets exceed half of home‑country GDP.",
+   "The TBTF premium has persisted through 2024 and did not diminish after the Global Financial Crisis.",
+   "The size of the TBTF premium is linked to sovereign fiscal strength, falling when sovereign CDS spreads rise."
+  ],
+  "why_it_matters": "Understanding the persistent TBTF funding advantage helps market participants assess bank credit risk, sovereign‑bank linkages, and the potential impact of policy actions on funding conditions in advanced economies.",
+  "audit": "serious"
+ },
+ {
+  "month": "2026-09",
+  "title": "Bringing Work Home: Flexible Work Arrangements as Gateway Jobs for Women in West Bengal",
+  "abstract": "There is a large latent workforce in developing countries that consists of hundreds of millions of women who prefer to have paid work and yet are out of the labor force. Often, available job opportunities are incompatible with traditional gender roles that encourage women to stay at home. In a randomized experiment with 1,670 households, we partner with a jobs platform to offer short-term data work to women who are out of the labor force. We find three main results. First, flexible work-from-home jobs are highly effective at bringing women into paid work. Job flexibility more than triples take-up from 15% for an office job to 48% for a job that women can do from home while multitasking with childcare. Second, these jobs can act as a stepping stone to less flexible work. Trying paid work from home increases take-up of less flexible jobs two to three months later among women without previous work experience. “Gateway jobs” are especially important for women from more traditional households: their labor supply is more likely to be marginal to flexibility, and in turn, work experience shifts their attitudes to become less traditional. Third, from the labor demand side, remote work comes with trade-offs in worker performance. Working from the office increases accuracy by 3% and speed by 18%. However, these performance drawbacks of work-from-home arrangements may be outweighed by the increase in available workers.",
+  "summary": "The paper examines how flexible work‑from‑home jobs can draw women in West Bengal, India, who are out of the labor force, into paid employment. Using a randomized experiment with 1,670 households and a jobs platform offering short‑term data work, the authors find that flexibility triples job take‑up and later increases uptake of less flexible jobs, acting as a \"gateway\" to broader labor market participation. However, remote work reduces accuracy by 3% and speed by 18%, suggesting a trade‑off between participation gains and worker performance.",
+  "takeaways": [
+   "Flexible work‑from‑home jobs dramatically raise women’s labor force participation in West Bengal.",
+   "Gateway jobs lead to later adoption of less flexible employment and shift attitudes toward traditional roles.",
+   "Remote work lowers accuracy and speed, but the expanded labor pool may offset the productivity loss."
+  ],
+  "why_it_matters": "Understanding how flexible work can unlock a large untapped female labor force in emerging economies helps assess growth potential, consumer demand, and informs policy or corporate strategies targeting labor market participation.",
+  "audit": "serious"
+ },
+ {
+  "month": "2026-10",
+  "title": "Global Spillovers from U.S. Bond Supply Shocks",
+  "abstract": "I study spillovers from U.S. bond supply shocks, identified from yield moves around U.S. Treasury auction announcements. Using the shocks as instruments in daily and monthly local projections for AEs and EMs, I find substantial pass-through to global long-term rates. A debt expansion shock that raises the U.S. 10-year yield by 10 bps lifts foreign 10-year yields by roughly 7 bps within a few business days. Monthly aggregation shows contractionary real effects: U.S. industrial production falls up to 0.4 percent after eight months and foreign industrial production by a comparable amount, around 0.4 percent, with a more persistent profile. The foreign contraction reflects financial tightening, exchange-rate depreciation, and weaker U.S. demand. Spillovers are heterogeneous: moving from the 25th to 75th percentile of foreign investor participation deepens the IP decline by 0.5 pp. Results are robust to a demand-side shock and consistent with the relevant benchmarks, highlighting U.S. bond supply as a key driver of global financial conditions and real activity, amplified by foreign investor participation and weak domestic fundamentals.",
+  "summary": "The paper investigates how unexpected changes in U.S. Treasury supply affect global financial conditions and real activity. Using identified bond‑supply shocks around auction announcements as instruments, the author estimates daily and monthly local projections for both advanced and emerging economies. Results show that a 10‑bp rise in the U.S. 10‑year yield lifts foreign 10‑year yields by about 7 bps and cuts industrial production in both the United States and abroad by roughly 0.4 % after several months, with larger effects when foreign investors are more involved.",
+  "takeaways": [
+   "U.S. Treasury supply shocks raise foreign long‑term yields by about 7 basis points within days",
+   "The shocks cause a contraction of roughly 0.4 % in industrial production in the United States and abroad after several months",
+   "Effects are stronger with higher foreign investor participation and weaker domestic fundamentals"
+  ],
+  "why_it_matters": "Understanding how U.S. bond supply moves influence global yields, exchange rates, and growth helps the research team forecast interest‑rate environments, currency dynamics, and credit conditions across markets.",
+  "audit": "loose"
+ },
+ {
+  "month": "2026-10",
+  "title": "Do Markets Dream of Artificial Intelligence? Macroeconomic Effects and International Spillovers of AI News Shocks",
+  "abstract": "This paper identifies AI news shocks from financial markets and traces their macroe-conomic effects in the United States and the euro area. We combine a daily equity factor based on differences in firms’ AI exposures with sign, magnitude, and narrative restrictions in a Bayesian VAR to isolate revisions in AI’s expected economic value. Monthly local projections reveal an investment-led adjustment in the US: capital-goods orders rise early and persistently, while aggregate activity responds more gradually and with greater uncertainty. Producer prices increase before consumer prices, and the expansion spreads from sectors closely connected to the AI production network to the broader economy. In the euro area, equity prices rise and the euro depreciates; import and energy costs feed into inflation before real activity strengthens. Inflation expectations and nominal rates also increase. The results highlight a monetary policy dilemma: financial spillovers and imported price pressures arrive before the broader productive gains from AI adoption.",
+  "summary": "The paper asks how AI‑related news influences macroeconomic activity and spillovers across countries. It identifies AI news shocks using a daily equity factor and Bayesian VAR with narrative restrictions, then estimates effects with monthly local projections. Findings show AI news triggers an investment‑led boost in US capital‑goods orders, early rises in producer prices, and in the euro area higher equity prices, euro depreciation and inflation pressures before real activity picks up. The authors highlight a monetary‑policy dilemma as price pressures arrive ahead of broader productivity gains.",
+  "takeaways": [
+   "AI news shocks generate an early surge in capital‑goods orders and investment in the United States.",
+   "Producer prices and inflation expectations rise before consumer prices, creating early price pressures.",
+   "Policymakers face a dilemma because monetary‑policy tightening may be needed before the longer‑run productivity benefits of AI materialize."
+  ],
+  "why_it_matters": "Understanding AI‑driven news shocks helps forecast inflation dynamics, interest‑rate moves, currency shifts and sector‑specific investment trends, all of which are critical for asset‑allocation, risk‑management and rate‑policy analysis.",
+  "audit": "serious"
+ },
+ {
+  "month": "2026-10",
+  "title": "Transmission of U.S. Long-term Rate to EM Local Currency Sovereign Bonds",
+  "abstract": "This paper investigates how shocks to the U.S. long-term risk-neutral interest rate influence emerging market local currency sovereign bonds and how domestic investor participation affects this relationship. We focus on the expected-future-short-rate, or risk-neutral, component of U.S. long-term rates, which reflects U.S. monetary policy and serves as a purer from of the global risk-free benchmark, rather than term premia. Using the instrumental variable approach and data on investor types in local currency sovereign bond markets, we have two main findings. First, a rise in the U.S. long-term interest rate leads to an increase in both local currency sovereign yields and term premia in emerging markets. Second, domestic investor participation mitigates these spillover effects from the U.S. interest rate, primarily driven by domestic banks and non-bank institutional investors rather than central banks. These results underscore the importance of policies aimed at broadening and deepening local investor bases to strengthen local market resilience against unexpected external interest-rate shocks.",
+  "summary": "The paper examines how shocks to the U.S. long‑term risk‑neutral interest rate affect emerging‑market local‑currency sovereign bond yields and term premia. It uses an instrumental‑variable approach with data on investor types in these bond markets. The authors find that U.S. rate increases raise EM sovereign yields, but higher domestic investor participation—especially banks and non‑bank institutions—mitigates the spillover. The study highlights the role of broadening local investor bases to enhance market resilience.",
+  "takeaways": [
+   "U.S. long‑term rate hikes raise EM local‑currency sovereign yields and term premia.",
+   "Domestic investor participation dampens these spillovers.",
+   "Broadening the domestic investor base can improve resilience to external rate shocks."
+  ],
+  "why_it_matters": "Understanding how U.S. rate movements transmit to EM sovereign yields helps the markets team assess credit risk, price sovereign exposure, and shape strategies for emerging‑market portfolios.",
+  "audit": "clean"
+ },
+ {
+  "month": "2026-10",
+  "title": "Monetary-Policy Risk and Equilibrium Asset Prices",
+  "abstract": "We quantify the effects of uncertainty about the conduct of monetary policy on asset prices. Nominal yields, real yields, stock returns, and implied volatilities all vary more on days with FOMC communication than on FOMC “blackout” days, consistent with policy communication being a source of risk. Furthermore, these asset prices all respond significantly to changes in interest-rate uncertainty around FOMC announcements, consistent with that risk being priced. A New Keynesian model with stochastic variation in the policy rule quantitatively matches this evidence. Our model shows that monetary-policy risk contributes to excess returns on equities and nominal bonds and accounts for much of the risk premium on inflation-indexed bonds. Transitory increases in monetary-policy risk lower stock and bond prices, reduce inflation-risk premia, and generate macroeconomic weakness similar to that produced by aggregate-demand shocks. The effective lower bound on interest rates reduces the size of monetary-policy risk in the model but magnifies its asset-pricing consequences, consistent with the data. We use our model to assess the effects of the increase in monetary-policy risk that occurred following the rapid tightening of policy in 2022.",
+  "summary": "The paper asks how uncertainty about monetary policy affects asset prices. It examines day‑to‑day movements in nominal and real yields, stock returns and implied volatilities around FOMC communications and blackout days, and builds a New Keynesian model with stochastic policy‑rule variation. The authors find that policy uncertainty raises risk premiums on equities, nominal bonds and inflation‑indexed bonds, and that the effective lower bound amplifies these pricing effects.",
+  "takeaways": [
+   "Policy communication days show higher volatility in yields, stocks and option markets, indicating monetary‑policy risk is priced.",
+   "The calibrated model shows monetary‑policy risk contributes significantly to excess returns on equities and bonds, especially inflation‑indexed bonds.",
+   "The effective lower bound reduces the size of policy risk but magnifies its impact on asset prices, so tighter policy raises risk premiums."
+  ],
+  "why_it_matters": "Understanding how monetary‑policy uncertainty is priced helps forecast movements in Treasury yields, equity markets and inflation‑linked securities, informs risk‑premia models, and guides portfolio allocation and hedging strategies around FOMC events.",
+  "audit": "serious"
+ },
+ {
+  "month": "2026-10",
+  "title": "The Inflation Attention Threshold and Inflation Surges",
+  "abstract": "The recent inflation surge brought inflation back on people's minds. I quantify when and how much attention to inflation changes and derive the macroeconomic implications of these attention changes. I estimate an attention threshold at an inflation rate of 4 percent, that attention doubles when inflation exceeds this threshold, and that supply shocks have stronger and more persistent effects on inflation in times of high attention. Developing a model featuring the attention threshold, I show that attention changes offer a joint explanation for inflation surges, inflation's co-movement with inflation expectations, and a long last mile of disinflation.",
+  "summary": "The paper asks when and how public attention to inflation shifts and what macro consequences follow. Using empirical estimation, it finds an attention threshold at 4% inflation, with attention doubling beyond that point. A structural model shows that higher attention amplifies and prolongs the impact of supply shocks on inflation, helping to explain recent inflation spikes, the link with expectations, and the slow pace of disinflation.",
+  "takeaways": [
+   "Public attention to inflation jumps sharply when inflation exceeds about 4 percent.",
+   "During high‑attention periods, supply shocks generate stronger and more persistent inflationary effects.",
+   "The attention mechanism jointly explains inflation surges, the co‑movement with expectations, and a prolonged disinflation process."
+  ],
+  "why_it_matters": "Understanding how inflation attention shifts can improve forecasts of price dynamics and expectations, which are crucial for bond market pricing, central‑bank policy assessment, and inflation‑linked investment strategies.",
+  "audit": "loose"
+ },
+ {
+  "month": "2026-10",
+  "title": "A New Model of Trend Inflation Using Disaggregates, Survey Expectations, and Uncertainty",
+  "abstract": "This paper develops a new empirical model that estimates trend inflation by combining modeling features that have advanced the literature on trend inflation over the past two decades. These features include incorporating information about long-term inflation expectations from surveys in a flexible way, modeling aggregate inflation via sectoral data (goods and services), allowing for stochastic volatility (SV) in the shocks to the trend and transitory components of inflation, allowing for a time-varying price Phillips curve, and allowing for time-varying uncertainty effects on the level of inflation. We estimate the model using Bayesian methods. We assess the relative importance of each feature for trend estimation and document the new model's competitive properties. The new model provides a more interpretable historical decomposition of inflation data than the models it extends. The decomposition suggests that uncertainty effects play a greater role than business cycle effects in explaining inflation fluctuations.",
+  "summary": "The paper asks how to improve estimates of trend inflation by adding recent advances such as survey-based long‑term expectations, sectoral disaggregation, stochastic volatility, a time‑varying Phillips curve, and uncertainty effects. It uses a Bayesian estimation framework to fit the model to aggregate and sectoral inflation data. The results show that the new specification better decomposes inflation history and highlights that uncertainty has a larger influence on inflation fluctuations than the business cycle.",
+  "takeaways": [
+   "Incorporating survey expectations and sectoral data improves trend‑inflation estimates.",
+   "Stochastic volatility and time‑varying uncertainty significantly affect inflation dynamics.",
+   "Uncertainty effects matter more than business‑cycle effects for explaining inflation fluctuations."
+  ],
+  "why_it_matters": "Better trend‑inflation models help the research team forecast price dynamics, assess inflation risks, and support central‑bank and market expectations for interest‑rate policy.",
+  "audit": "serious"
+ },
+ {
+  "month": "2026-10",
+  "title": "Transformative AI and demand bottlenecks",
+  "abstract": "Transformative AI promises to accelerate growth through productivity enhancement and automation. Yet automation on such a scale would raise the share of investment in output, potentially starving AI innovation of returns from a shrinking consumer market. We propose an endogenous growth framework to study this interaction, featuring research and entry decisions that propel AI advances but whose costs must be paid for by consumer demand. We identify several scenarios, spanning transformative AI, a demand bottleneck outcome where thinning consumer demand stalls AI progress, and intermediate cases in between. When anchored to evidence, the calibrated model points to the demand bottleneck as a highly plausible scenario, and projects more moderate growth in the coming years relative to recent studies such as Korinek et al. (2026). We draw policy implications, including for the natural rate of interest.",
+  "summary": "The paper asks how transformative AI, by raising the share of investment in output, could constrain consumer demand and thereby limit further AI‑driven growth. It builds an endogenous growth model that incorporates research and entry decisions and calibrates it to empirical evidence. The authors find that a demand bottleneck is a plausible outcome, leading to more moderate growth and lower natural interest rates than some recent forecasts. Policy implications for the natural rate of interest are discussed.",
+  "takeaways": [
+   "AI‑driven productivity gains may be offset by a demand bottleneck that slows overall growth",
+   "Calibrated simulations suggest moderate growth prospects rather than the high rates projected by other studies",
+   "The findings imply that the natural rate of interest may need to be revised downward to reflect weaker consumer demand"
+  ],
+  "why_it_matters": "Understanding whether AI will fuel strong growth or encounter a demand bottleneck helps forecast future output, investment returns, and the trajectory of interest rates, all of which are crucial for asset allocation, rate positioning, and risk assessment by market participants.",
+  "audit": "serious"
+ },
+ {
+  "month": "2026-10",
+  "title": "The Causal Effects of Global Supply Chain Disruptions on Macroeconomic Outcomes: Evidence and Theory",
+  "abstract": "We study the causal effects of global supply chain disruptions by constructing a new index of real-time port congestion using Automatic Identification System data from container ships and a spatial clustering algorithm. We develop a model with search frictions between producers and retailers that links upstream production slack to downstream supply shortages and captures output and price responses to supply chain shocks. The co-movements of output, prices, spare capacity, and market tightness provide novel identification restrictions. We find that demand and supply shocks drove US disinflation in 2020, while the inflation surge in 2021 was driven mainly by supply chain shocks.",
+  "summary": "The authors build a real-time index of port congestion from AIS data on container ships and use a spatial clustering algorithm to capture supply chain disruptions. They introduce a search-friction model that links upstream production slack to downstream shortages, allowing identification of output and price responses. Using this framework they show that demand and supply shocks drove US disinflation in 2020, while the 2021 inflation surge was mainly due to supply-chain shocks.",
+  "takeaways": [
+   "A real-time port congestion index is constructed using AIS data and spatial clustering.",
+   "A search-friction model links upstream production slack to downstream shortages, identifying output and price responses.",
+   "Demand and supply shocks caused US disinflation in 2020, while the 2021 inflation surge was driven mainly by supply-chain shocks."
+  ],
+  "why_it_matters": "Understanding whether recent inflation spikes are driven by supply-chain disruptions or demand factors helps the markets team forecast CPI trends, assess monetary policy outlook, and price related assets such as commodities and inflation-linked securities.",
+  "audit": "clean"
+ }
+]

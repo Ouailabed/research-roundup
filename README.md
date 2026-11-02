@@ -134,6 +134,8 @@ An earlier check by one AI reader agreed on all 20 of its papers (`data/second_r
 
 That check only looks at numbers, so an AI audit went further on 2 November. Claude and Codex each compared the 16 published write-ups with their abstracts, and 8 of the 16 held a reversed or unsupported claim. One said less trade would increase the sacrifice ratio when the abstract says it falls by almost half. 3 more were loose. All 11 were corrected using the abstracts' own wording, and the prompt now says to keep each effect's direction. Codex then checked a fixed random sample of 40 of the other 588 short summaries: 33 were clean, 4 were loose and 3 stated something the abstract doesn't support, a 95% range of 3% to 20%. It also called 3 of the 40 tags wrong. The 3 summaries and 2 of the tags were corrected, and the third tag, on 23 European countries, was left as a judgment call. The other 548 short summaries haven't been audited, and the new prompt hasn't been measured yet. This is AI checking AI, so a person should read each issue before it goes out.
 
+From the next issue, a second AI checks every write-up before the issue is built. OpenAI's `gpt-6-luna` reads each write-up beside its abstract and reports any claim that is reversed, invented or loose. It rewrites only the parts it flagged, in the abstract's own words, then reads the correction again. A rewritten part that still fails goes back to what the writer wrote, because a rewrite that fails its own check is no better, and the job log says to read that write-up before the issue goes out. If the correction changes anything, the opening note is written again from the corrected text. The 16 September and October write-ups were audited by hand, so the checker leaves them alone. The newsletter says it was checked only when every write-up passed, and a corrected write-up says so on the site. It never changes a tag. It needs `OPENAI_API_KEY`. Without one, or if OpenAI can't be reached or the account has no credit, the issue goes out unchecked and the log says so. `python -m src.main fact-check-test` runs the checker on the 16 audited write-ups as they were before correction, to measure how many of the audit's findings it catches. That measure hasn't been run yet, because no key was set when this was built, so how well it works is still unknown.
+
 Each month's selection works like an editor's desk. A score alone can't pick the issue: in October 121 of 293 papers scored 9 or 10, and the two models use the scale a little differently. So `openai/gpt-oss-120b` reads every paper scoring 9 or 10, in groups of 40, and ranks the ones most useful to a markets team. The issue takes the top of that ranking, at most 2 papers per source, with a mix of EM, DM and Transversal where possible. It also writes a short opening note on what the papers tell the team. A paper belongs to the month it was first seen, because published dates are unreliable. The backfilled September and October issues are the exception: they use the best date each source gives. Once chosen, an issue's list is saved, so the same month always gives the same issue.
 
 ## Run it locally
@@ -157,7 +159,7 @@ The repo comes with saved data, so the dashboard works straight away with no key
 python -m streamlit run app.py
 ```
 
-To run the agent, open `.env` and fill in the values. You only need `GROQ_API_KEY`, which you can get for free at console.groq.com. `OPENALEX_API_KEY` is optional. `CONTACT_EMAIL` is sent to sources in the User-Agent, so they can reach you. Then:
+To run the agent, open `.env` and fill in the values. You only need `GROQ_API_KEY`, which you can get for free at console.groq.com. `OPENALEX_API_KEY` is optional, and so is `OPENAI_API_KEY`, which turns on the fact-check. `CONTACT_EMAIL` is sent to sources in the User-Agent, so they can reach you. Then:
 
 ```powershell
 python -m src.main collect
@@ -177,7 +179,7 @@ python -m pytest
 ## Deploy it
 
 1. Fork or push this repo to GitHub, as a public repo.
-2. Add `GROQ_API_KEY` under Settings, Secrets and variables, Actions. `OPENALEX_API_KEY` and `CONTACT_EMAIL` are optional.
+2. Add `GROQ_API_KEY` under Settings, Secrets and variables, Actions. `OPENALEX_API_KEY`, `CONTACT_EMAIL` and `OPENAI_API_KEY` are optional. To measure the fact-check once its key is in, start Measure the fact-checker on the Actions tab.
 3. Under Settings, Pages, set the source to GitHub Actions.
 4. On a fork, first turn on workflows on the Actions tab, because GitHub leaves them off.
 5. Start Weekly run by hand with Run workflow on the Actions tab. After that the workflows in `.github/workflows` run on their schedules, but GitHub doesn't promise when a scheduled run starts (see Limits), so any job can be started the same way.
@@ -188,6 +190,8 @@ The public site is a static page with no server, so it needs no account and neve
 
 Nothing. Groq's free tier gave each model 1,000 requests a day, 8,000 tokens a minute and 200,000 tokens a day on 31 October 2026. GitHub Actions and Streamlit Community Cloud are free for this size of project. A normal month has about 300 new papers, and scoring one paper uses about 850 tokens. That is about 255,000 tokens a month, but weekly runs spread it to about 60,000 tokens a week, well inside the daily allowance. The editor's ranking and the write-ups add about 50,000 tokens an issue on the stronger model.
 
+The fact-check is the one paid part, and it is optional. OpenAI charged $0.10 per million input tokens and $0.50 per million output tokens for `gpt-6-luna` on 2 November 2026. An issue needs at most 16 calls, two for each of 8 write-ups, and each answer is capped at 8,000 tokens, so an issue costs under 10 cents at most. That is an estimate from the caps, not a measured bill.
+
 ## Limits and next steps
 
 - Abstracts only. The agent never reads full papers, so it can only be as good as the abstract.
@@ -196,6 +200,7 @@ Nothing. Groq's free tier gave each model 1,000 requests a day, 8,000 tokens a m
 - The free tier is slow: about 10 papers a minute, and the daily allowance refills steadily rather than all at once. A big backlog takes a few days, which the catch-up job handles without help.
 - GitHub doesn't promise when a scheduled run starts, and it can skip one. On this repo the 06:30 and 07:00 runs on 1 November never came, and the first scheduled run fired at 17:56 that day, about 5 hours late, though every manual run worked. So the catch-up job restarts itself while work is left, and it collects if no run has for a week. Any job can also be started by hand with Run workflow on the Actions tab. `timer.yml` can stand in for cron if it stays silent: it waits 7 days on a deployment environment, using no runner, then starts the weekly run and itself. It is off until someone starts it.
 - Scores bunch at 5 and 9, because the prompt names those values. The editor step works around this, but a better scale would need every paper scored again.
+- The fact-check only covers the 5 to 8 write-ups in each issue. The short summaries of every other paper aren't checked.
 - With more time: direct routes for the banks now on RePEc, a way to read the Reserve Bank of New Zealand if it opens an API, and a human check before each issue goes out.
 
 ## About AI help

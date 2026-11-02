@@ -16,6 +16,8 @@
 
 - Reviewed on 2 November 2026: Claude and Codex audited the 16 write-ups, and 11 were corrected. Codex audited 40 short summaries, and 3 summaries and 2 tags were corrected. Three faults in the jobs were fixed. 151 tests.
 
+- Added on 2 November 2026: a fact-check by OpenAI's gpt-6-luna on every write-up, off until its key is set, with a measure against the audited write-ups. 172 tests.
+
 ## Current step
 Both issues are built and live, and their 16 write-ups have been audited against the abstracts. The next thing to watch is Monday's weekly run, the first scheduled weekly run this repo will have seen.
 

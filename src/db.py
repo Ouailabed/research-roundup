@@ -91,6 +91,16 @@ CREATE TABLE IF NOT EXISTS failures (
 )
 """
 
+CHECKS_SCHEMA = """
+CREATE TABLE IF NOT EXISTS checks (
+    paper_id TEXT PRIMARY KEY,
+    model TEXT,
+    checked_at TEXT,
+    status TEXT,
+    problems TEXT
+)
+"""
+
 # After this many runs a paper is skipped, or it would come back for ever and could hold up its issue.
 MOST_TRIES = 3
 
@@ -105,6 +115,7 @@ def connect():
     conn.execute(ISSUES_SCHEMA)
     conn.execute(OVERVIEWS_SCHEMA)
     conn.execute(FAILURES_SCHEMA)
+    conn.execute(CHECKS_SCHEMA)
     # A database made before this column existed needs it added.
     columns = {row["name"] for row in conn.execute("PRAGMA table_info(papers)")}
     if "duplicate_of" not in columns:
@@ -258,6 +269,37 @@ def clear_issue(conn, month):
 
 def paper_by_id(conn, paper_id):
     return conn.execute("SELECT id, title, authors, abstract, source FROM papers WHERE id = ?", (paper_id,)).fetchone()
+
+
+def writeup_of(conn, paper_id):
+    row = conn.execute("SELECT summary, takeaways, why_it_matters, model FROM writeups WHERE paper_id = ?", (paper_id,)).fetchone()
+    return {"summary": row["summary"], "takeaways": json.loads(row["takeaways"]), "why_it_matters": row["why_it_matters"], "model": row["model"]}
+
+
+def correct_writeup(conn, paper_id, writeup, model):
+    conn.execute(
+        "UPDATE writeups SET summary = ?, takeaways = ?, why_it_matters = ?, model = ? WHERE paper_id = ?",
+        (writeup["summary"], json.dumps(writeup["takeaways"], ensure_ascii=False), writeup["why_it_matters"], model, paper_id),
+    )
+    conn.commit()
+
+
+def clear_overview(conn, month):
+    conn.execute("DELETE FROM overviews WHERE month = ?", (month,))
+    conn.commit()
+
+
+def save_check(conn, paper_id, model, status, problems):
+    conn.execute(
+        "INSERT OR REPLACE INTO checks (paper_id, model, checked_at, status, problems) VALUES (?, ?, ?, ?, ?)",
+        (paper_id, model, right_now(), status, json.dumps(problems, ensure_ascii=False)),
+    )
+    conn.commit()
+
+
+def check_status(conn, paper_id):
+    row = conn.execute("SELECT status FROM checks WHERE paper_id = ?", (paper_id,)).fetchone()
+    return row[0] if row else None
 
 
 def has_writeup(conn, paper_id):

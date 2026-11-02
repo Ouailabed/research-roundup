@@ -1,0 +1,23 @@
+name: Measure the fact-checker
+
+# Runs the checker on 16 write-ups that Claude and Codex audited, and prints how far it agrees.
+# It saves nothing, so it can run at any time.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m src.main fact-check-test

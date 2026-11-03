@@ -24,10 +24,12 @@ SAME_TOPIC = {
 
 
 def clean_topics(topics):
-    # Models write "Inflation" and "inflation", or "labor" and "labour", which would be separate filters.
+    # Models write "Inflation" and "inflation", "labor" and "labour", or "behavioral" and "behavioural",
+    # which would be separate filters.
     cleaned = set()
     for topic in topics:
         topic = re.sub(r"\blabor\b", "labour", no_em_dash(topic).strip().lower())
+        topic = re.sub(r"\bbehavior", "behaviour", topic)
         cleaned.add(SAME_TOPIC.get(topic, topic))
     return sorted(cleaned)
 

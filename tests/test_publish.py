@@ -21,6 +21,10 @@ def test_near_names_are_one_topic():
     assert clean_topics(["Labor market", "artificial intelligence", "AI"]) == ["ai", "labour markets"]
 
 
+def test_us_and_uk_spelling_of_behaviour_are_one_topic():
+    assert clean_topics(["behavioral economics", "Behavioural", "consumer behavior"]) == ["behavioural", "consumer behaviour"]
+
+
 def test_a_word_that_only_contains_labor_is_left_alone():
     assert clean_topics(["laboratory experiments"]) == ["laboratory experiments"]
 

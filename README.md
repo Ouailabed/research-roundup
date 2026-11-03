@@ -206,7 +206,3 @@ The fact-check also runs on the free tier. On the day an issue is built it adds 
 - Scores bunch at 5 and 9, because the prompt names those values. The editor step works around this, but a better scale would need every paper scored again.
 - The fact-check only covers the 5 to 8 write-ups in each issue. The short summaries of every other paper aren't checked.
 - With more time: direct routes for the banks now on RePEc, a way to read the Reserve Bank of New Zealand if it opens an API, and a human check before each issue goes out.
-
-## About AI help
-
-Claude Code built this project from my plan. My guide and learning notes record each step.

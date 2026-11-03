@@ -25,8 +25,8 @@ Both issues are built and live, and every summary and tag has had an AI review. 
 
 ## Next
 1. Open the site on a phone in a private window.
-2. Email the issue to myself, then submit. A draft reply to Yasmine is in Gmail, and its three links need pasting in again first, because the connector turned them into Google redirects.
-3. If there is time, tag 20 papers by hand in the guide (Task 25) for a real human figure. So far only AI readers have checked the tags.
+2. Email the issue to myself, then submit.
+3. If there is time, tag 20 papers by hand for a real human figure: `python -m src.compare sheet` makes the sheet, and `python -m src.compare score` compares the tags. So far only AI readers have checked the tags.
 
 ## Open problems
 - 58 short summaries are loose, by Codex's reading, and were left as they are. No person has checked the summaries or the tags.

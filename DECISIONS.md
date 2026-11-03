@@ -39,7 +39,7 @@ One line for every choice: what we chose and why.
 - A review by Codex found two faults, both fixed on 2 November. A paper with no usable answer came back on every run and could hold up its issue, so it now gets 3 runs and is then skipped. The editor's ranking was accepted however short it was, so a short one is now asked for again, and after that the plain scores decide.
 - Every catch-up run that saves work now starts the publish job itself. On 1 November the last run of a chain built October and saved it, but the site stayed on the old issue until the publish job was started by hand, because only a run with work left started it.
 - The catch-up job also collects if no run has for a week, so a skipped weekly run costs a few days rather than a whole week.
-- Python 3.14 on the laptop, in GitHub Actions and on Streamlit Community Cloud, so all three behave the same.
+- Python 3.14 on the laptop and in GitHub Actions, so both behave the same. The code also runs on 3.13, and the tests pass there, so the README asks for 3.13 or newer.
 - Feeds and official APIs come first, because they are stable and allowed. Scraping is a last resort.
 - G10 can mean the G10 countries or the G10 currencies, so we cover both. That adds the Reserve Bank of Australia, the Reserve Bank of New Zealand and Norges Bank.
 - IMF Working Papers come through Crossref (ISSN 1018-5941), because the IMF feed answered 403 to a script on 31 October 2026.
@@ -57,6 +57,7 @@ One line for every choice: what we chose and why.
 - JPE abstracts come from RePEc IDEAS, at an address built from the DOI, because OpenAlex has few of them. The paper keeps its OpenAlex date and DOI. RePEc gives a JPE paper only a year.
 - 12 more European central banks come through RePEc IDEAS, because the brief says European national central banks and coverage is marked: Czech Republic, Hungary, Greece, Latvia, Lithuania, Estonia, Slovakia, Croatia, Iceland, Luxembourg, Cyprus and Ukraine. A new source's first papers are dated by the source, not by the day we added it, so they don't all land in one month.
 - Malta stays out because its RePEc series stops in 2023. We found no RePEc series for Slovenia, Bulgaria, Romania or Serbia.
-- The public site merges near-duplicate topics when it publishes, such as labor and labour, and its filter lists only topics used 3 times or more. The saved data keeps what the AI wrote.
+- The public site merges near-duplicate topics when it publishes, such as labor and labour or behavioral and behavioural, and its filter lists only topics used 3 times or more. The saved data keeps what the AI wrote.
+- The README opens with a 5-minute review and keeps the quality checks short, so a reviewer sees the results first. The full record of every check moved, unchanged, to `docs/quality-checks.md`.
 - The weekly and monthly jobs share a GitHub concurrency group, because both write the database and git can't merge a binary file. The monthly job scores anything left over before it builds, so an issue is chosen from the whole month.
 - Two papers from different sources count as the same if their titles are more than 0.9 alike. The one with the longest abstract is kept. Same-source papers are never merged, because BPEA reuses titles like Comments and Discussion.

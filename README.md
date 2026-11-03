@@ -7,7 +7,7 @@ Every week it collects new papers from journals, central banks and research bodi
 ## Review in 5 minutes
 
 1. **The newsletter:** the [October 2026 issue](https://ouailabed.github.io/research-roundup/issues/2026-10.html) and the [September 2026 issue](https://ouailabed.github.io/research-roundup/issues/2026-09.html).
-2. **The dashboard:** [the live site](https://ouailabed.github.io/research-roundup/). Explore papers lists every paper the agent has read, with filters and each paper's tag, reason and metadata. Archive has both issues and the latest source report.
+2. **The dashboard:** [the live site](https://ouailabed.github.io/research-roundup/). Explore papers lists every paper the agent has read, with filters and each paper's tag, reason and metadata. Archive has every issue and the latest source report.
 3. **Sources:** 55 of 56 sources work. The Reserve Bank of New Zealand refuses scripts and its RePEc series stops in 2024, so it isn't covered. [Sources](#sources) shows each route and fallback.
 4. **Quality:** Codex tagged all 626 papers saved by 2 November, blind, and matched our tags on 91.4%, I read through the tags myself, and every new write-up is fact-checked before an issue is built. See [How the tags and summaries were checked](#how-the-tags-and-summaries-were-checked).
 5. **Run it yourself:** the dashboard runs locally with no API key. See [Run it locally](#run-it-locally).

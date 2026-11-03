@@ -18,8 +18,10 @@
 
 - Added on 2 November 2026: a fact-check of every write-up, on Groq's free tier with openai/gpt-oss-120b, chosen after measuring three free models against the audited write-ups. 177 tests.
 
+- Reviewed on 2 November 2026: Codex tagged all 626 papers blind and checked all 610 short summaries. A Claude reader checked its 81 flags, and 23 tags and 27 summaries were corrected. Two papers listed twice were merged, so the site has 624. 180 tests.
+
 ## Current step
-Both issues are built and live, and their 16 write-ups have been audited against the abstracts. The next thing to watch is Monday's weekly run, the first scheduled weekly run this repo will have seen.
+Both issues are built and live, and every summary and tag has had an AI review. The first scheduled weekly run came on 2 November, about 9.5 hours late, and saved new papers. The fact-check runs for the first time on a real issue when December is built.
 
 ## Next
 1. Open the site on a phone in a private window.
@@ -27,7 +29,7 @@ Both issues are built and live, and their 16 write-ups have been audited against
 3. If there is time, tag 20 papers by hand in the guide (Task 25) for a real human figure. So far only AI readers have checked the tags.
 
 ## Open problems
-- 548 short summaries haven't been audited. In a sample of 40, 3 stated something the abstract doesn't support.
-- GitHub's schedule is late and unreliable here: the first scheduled run fired at 17:56 on 1 November, about 5 hours late. Check that Monday's weekly run happens.
+- 58 short summaries are loose, by Codex's reading, and were left as they are. No person has checked the summaries or the tags.
+- GitHub's schedule is late and unreliable here: scheduled runs have come 5 to 9.5 hours late.
 - Eight series give only a year, so they could not join the backfilled issues.
 - 21 recent JPE papers have no abstract until RePEc lists them. Each run tries again.

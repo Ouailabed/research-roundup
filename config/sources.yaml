@@ -22,7 +22,7 @@ sources:
     type: rss
     url: https://www.bis.org/doclist/wppubls.rss
     abstract_from_page: true
-    notes: Feed descriptions were 75 to 462 characters on 31 October 2026, often just the first sentence. The full abstract is on each paper's page, so we read that for new papers.
+    notes: Feed descriptions were 75 to 462 characters on 31 October 2026, often just the first sentence. The full abstract is on each paper's page, so that page is read for new papers.
 
   - name: BPEA
     group: research_body
@@ -141,7 +141,7 @@ sources:
     type: html
     status: not_covered
     url: https://www.rbnz.govt.nz/research-and-publications/analytical-notes
-    notes: Not covered. The site answered 403 to a script on 31 October 2026 and again on 1 November, and we never disguise the script as a browser. RePEc IDEAS stops at 2023 for Discussion Papers and 2024 for Analytical Notes. OpenAlex and Crossref show only staff papers published elsewhere, not the bank's own series.
+    notes: Not covered. The site answered 403 to a script on 31 October 2026 and again on 1 November, and the script is never disguised as a browser. RePEc IDEAS stops at 2023 for Discussion Papers and 2024 for Analytical Notes. OpenAlex and Crossref show only staff papers published elsewhere, not the bank's own series.
 
   - name: Boston Fed
     group: regional_fed
@@ -149,7 +149,7 @@ sources:
     reader: repec
     status: fallback
     url: https://ideas.repec.org/s/fip/fedbwp.html
-    notes: Crossref has the DOIs (prefix 10.29412) but no abstracts, so we use RePEc IDEAS.
+    notes: Crossref has the DOIs (prefix 10.29412) but no abstracts, so RePEc IDEAS is used.
 
   - name: New York Fed
     group: regional_fed
@@ -165,7 +165,7 @@ sources:
     reader: repec
     status: fallback
     url: https://ideas.repec.org/s/fip/fedpwp.html
-    notes: Crossref has the DOIs (prefix 10.21799) but no abstracts, so we use RePEc IDEAS.
+    notes: Crossref has the DOIs (prefix 10.21799) but no abstracts, so RePEc IDEAS is used.
 
   - name: Cleveland Fed
     group: regional_fed
@@ -181,7 +181,7 @@ sources:
     reader: repec
     status: fallback
     url: https://ideas.repec.org/s/fip/fedrwp.html
-    notes: Crossref has the DOIs (prefix 10.21144) but no abstracts, so we use RePEc IDEAS.
+    notes: Crossref has the DOIs (prefix 10.21144) but no abstracts, so RePEc IDEAS is used.
 
   - name: Atlanta Fed
     group: regional_fed
@@ -189,7 +189,7 @@ sources:
     reader: repec
     status: fallback
     url: https://ideas.repec.org/s/fip/fedawp.html
-    notes: Crossref has the DOIs (prefix 10.29338) but no titles or abstracts, so we use RePEc IDEAS.
+    notes: Crossref has the DOIs (prefix 10.29338) but no titles or abstracts, so RePEc IDEAS is used.
 
   - name: Chicago Fed
     group: regional_fed
@@ -197,7 +197,7 @@ sources:
     reader: repec
     status: fallback
     url: https://ideas.repec.org/s/fip/fedhwp.html
-    notes: Crossref had abstracts for only 7 of 9 recent papers, so we use RePEc IDEAS.
+    notes: Crossref had abstracts for only 7 of 9 recent papers, so RePEc IDEAS is used.
 
   - name: St. Louis Fed
     group: regional_fed
@@ -205,7 +205,7 @@ sources:
     reader: repec
     status: fallback
     url: https://ideas.repec.org/s/fip/fedlwp.html
-    notes: Crossref has the DOIs (prefix 10.20955) but no abstracts, so we use RePEc IDEAS.
+    notes: Crossref has the DOIs (prefix 10.20955) but no abstracts, so RePEc IDEAS is used.
 
   - name: Minneapolis Fed Staff Reports
     group: regional_fed
@@ -213,7 +213,7 @@ sources:
     reader: repec
     status: fallback
     url: https://ideas.repec.org/s/fip/fedmsr.html
-    notes: Crossref has no abstracts, and robots.txt on the bank's research database does not allow scripts, so we use RePEc IDEAS.
+    notes: Crossref has no abstracts, and robots.txt on the bank's research database does not allow scripts, so RePEc IDEAS is used.
 
   - name: Minneapolis Fed Working Papers
     group: regional_fed
@@ -221,7 +221,7 @@ sources:
     reader: repec
     status: fallback
     url: https://ideas.repec.org/s/fip/fedmwp.html
-    notes: Crossref has no abstracts, and robots.txt on the bank's research database does not allow scripts, so we use RePEc IDEAS.
+    notes: Crossref has no abstracts, and robots.txt on the bank's research database does not allow scripts, so RePEc IDEAS is used.
 
   - name: Kansas City Fed
     group: regional_fed
@@ -229,7 +229,7 @@ sources:
     reader: repec
     status: fallback
     url: https://ideas.repec.org/s/fip/fedkrw.html
-    notes: Crossref has the DOIs (prefix 10.18651) but no abstracts, so we use RePEc IDEAS. Some abstracts are short.
+    notes: Crossref has the DOIs (prefix 10.18651) but no abstracts, so RePEc IDEAS is used. Some abstracts are short.
 
   - name: Dallas Fed
     group: regional_fed
@@ -237,7 +237,7 @@ sources:
     reader: repec
     status: fallback
     url: https://ideas.repec.org/s/fip/feddwp.html
-    notes: Crossref has the DOIs (prefix 10.24149) but no abstracts, so we use RePEc IDEAS.
+    notes: Crossref has the DOIs (prefix 10.24149) but no abstracts, so RePEc IDEAS is used.
 
   - name: San Francisco Fed
     group: regional_fed
@@ -421,7 +421,7 @@ sources:
     type: api
     reader: crossref
     url: https://api.crossref.org/journals/0012-9682/works
-    notes: Crossref had abstracts for 20 of 25 recent articles. Its published date shows only the year, so we use its created date.
+    notes: Crossref had abstracts for 20 of 25 recent articles. Its published date shows only the year, so its created date is used.
 
   - name: Journal of Political Economy
     group: journal

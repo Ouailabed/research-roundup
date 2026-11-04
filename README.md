@@ -9,7 +9,7 @@ Every week it collects new papers from the top journals, central banks and resea
 1. **The newsletter:** the [October 2026 issue](https://ouailabed.github.io/research-roundup/issues/2026-10.html) and the [September 2026 issue](https://ouailabed.github.io/research-roundup/issues/2026-09.html).
 2. **The dashboard:** [the live site](https://ouailabed.github.io/research-roundup/). Explore papers lists every paper with filters, plus its tag, the reason for the tag and its metadata. Archive has every issue and the latest source report.
 3. **Sources:** 55 of 56 sources work. The one gap is the Reserve Bank of New Zealand, which blocks scripts and whose RePEc series stops in 2024. [Sources](#sources) shows how each one is read.
-4. **Quality:** in a blind check of all 626 papers saved by 2 November, Codex agreed with the project's tags 91.4% of the time. I also read through the tags myself, and every new write-up is fact-checked before an issue goes out. More in [How the tags and summaries were checked](#how-the-tags-and-summaries-were-checked).
+4. **Quality:** in a blind check of all 626 papers saved by 2 November, Codex agreed with the project's tags 91.4% of the time. A manual read-through of the tags agreed with most of them too, and every new write-up is fact-checked before an issue goes out. More in [How the tags and summaries were checked](#how-the-tags-and-summaries-were-checked).
 5. **Run it yourself:** the dashboard runs locally without any API key. See [Run it locally](#run-it-locally).
 
 | The home page | The newsletter | Exploring the papers |
@@ -109,9 +109,9 @@ There are 56 source entries: the five journals, NBER, BPEA, the IMF, the BIS, al
 
 **Working** means the publisher's own feed or an official registry (Crossref, DataCite or OpenAlex).
 
-**Fallback** means RePEc IDEAS or EconStor. These are open catalogues that give the same fields for every series, so I use them when a bank's own feed has no abstracts or authors, or when Crossref has the DOIs but not the abstracts. Each entry in `config/sources.yaml` has a note explaining its choice.
+**Fallback** means RePEc IDEAS or EconStor. These are open catalogues that give the same fields for every series, so they're used when a bank's own feed has no abstracts or authors, or when Crossref has the DOIs but not the abstracts. Each entry in `config/sources.yaml` has a note explaining its choice.
 
-**Not covered:** the Reserve Bank of New Zealand. Its site returns 403 to scripts and its RePEc series stops in 2024, and I didn't want the agent pretending to be a browser. A few smaller European central banks are missing too: Malta's RePEc series stops in 2023, and I couldn't find a RePEc series for Slovenia, Bulgaria, Romania or Serbia.
+**Not covered:** the Reserve Bank of New Zealand. Its site returns 403 to scripts and its RePEc series stops in 2024, and the agent never pretends to be a browser. A few smaller European central banks are missing too: Malta's RePEc series stops in 2023, and no RePEc series turned up for Slovenia, Bulgaria, Romania or Serbia.
 
 Every source follows the same rules: feeds and official APIs first, respect `robots.txt`, about one request a second, a clear User-Agent, and no getting around paywalls. A paper with no abstract stays in the database but is skipped in the analysis for that cycle. This mostly hits the Journal of Political Economy, because OpenAlex has few of its abstracts and RePEc lists new papers late, so every run tries RePEc again. Journal housekeeping like Front Matter and Recent Referees is dropped, so it doesn't count as missing.
 
@@ -129,13 +129,13 @@ Two models keep everything inside Groq's free limits. `openai/gpt-oss-20b` score
 
 ### How the tags and summaries were checked
 
-- **My own check:** I read through the tags myself and agreed with most of them. It wasn't a blind test, so I don't count it as an accuracy figure.
-- **A blind check of every tag:** I had Codex tag all 626 papers saved at the time without seeing ours. It agreed on 572 of them: 91.4%, with a 95% range of 88.9% to 93.3%. Each disagreement was then checked against the abstract, and 23 tags were changed.
+- **A manual check:** a read-through of the tags agreed with most of them. It wasn't a blind test, so it doesn't count as an accuracy figure.
+- **A blind check of every tag:** Codex tagged all 626 papers saved at the time without seeing the project's tags. It agreed on 572 of them: 91.4%, with a 95% range of 88.9% to 93.3%. Each disagreement was then checked against the abstract, and 23 tags were changed.
 - **The write-ups:** a review of the first 16 found 8 with a claim the abstract didn't support, such as an effect in the wrong direction. All 8 were fixed, and that's why every new write-up now goes through a fact-check step before an issue is built.
 - **The short summaries:** all 610 saved at the time were checked against their abstracts. 27 real problems were fixed, and 58 that were a bit loose were left as they are.
 - **The numbers:** `python -m src.main check` compares every number in a summary with its abstract. It flagged 6 of 624 summaries, and all 6 were just rounding or simple sums.
 
-Apart from my own read-through, these are AI checks of AI work. They show the tags follow the rules consistently, not that every tag is right, so someone should still read each issue before it goes out. The full record, with every figure and how to reproduce it, is in [docs/quality-checks.md](docs/quality-checks.md).
+Apart from the manual read-through, these are AI checks of AI work. They show the tags follow the rules consistently, not that every tag is right, so someone should still read each issue before it goes out. The full record, with every figure and how to reproduce it, is in [docs/quality-checks.md](docs/quality-checks.md).
 
 ## How papers are chosen
 
@@ -145,7 +145,7 @@ A paper belongs to the month it was first seen, because published dates are ofte
 
 ## Run it locally
 
-You'll need Python 3.13 or newer, and Git. I've tested it on 3.13 and 3.14.
+You'll need Python 3.13 or newer, and Git. It's tested on 3.13 and 3.14.
 
 ```powershell
 git clone https://github.com/Ouailabed/research-roundup.git
@@ -206,7 +206,7 @@ The fact-check is free too. On the day an issue is built it adds at most 16 call
 - GitHub doesn't guarantee when a scheduled run starts, and it can skip one. On 1 November the 06:30 and 07:00 runs never came, and the first scheduled run fired at 17:56, about 5 hours late, even though every manual run worked. So the catch-up job restarts itself while there's work left, and collects if nothing has run for a week. Any job can also be started by hand. `timer.yml` can stand in for cron if it keeps failing: it waits 7 days on a deployment environment, using no runner, then starts the weekly run and itself again. It stays off until someone starts it.
 - Scores bunch at 5 and 9, because the prompt names those values. The editor step works around it, but a better scale would mean scoring every paper again.
 - The fact-check only covers the 5 to 8 write-ups in each issue, not the short summaries of every other paper.
-- With more time I'd add direct routes for the banks now read through RePEc, a way to read the Reserve Bank of New Zealand if it opens an API, a blind human check of the tags, and a person reading each issue before it goes out.
+- With more time: direct routes for the banks now read through RePEc, a way to read the Reserve Bank of New Zealand if it opens an API, a blind human check of the tags, and a person reading each issue before it goes out.
 
 ## How I built it
 

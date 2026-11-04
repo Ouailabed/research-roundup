@@ -20,18 +20,18 @@
 
 - Reviewed on 2 November 2026: Codex tagged all 626 papers blind and checked all 610 short summaries. A Claude reader checked its 81 flags, and 23 tags and 27 summaries were corrected. Two papers listed twice were merged, so the site has 624. 180 tests.
 
-- Finished on 3 November 2026: I read through the tags myself and agreed with most of them. The README opens with a 5-minute review, the full record of the checks moved to `docs/quality-checks.md`, the README asks for Python 3.13 or newer, and it says how I built the project. The site merges behavioral and behavioural into one topic. 181 tests.
+- Finished on 3 November 2026: A manual read-through of the tags agreed with most of them. The README opens with a 5-minute review, the full record of the checks moved to `docs/quality-checks.md`, the README asks for Python 3.13 or newer, and it says how the project was built. The site merges behavioral and behavioural into one topic. 181 tests.
 
 ## Current step
-Both issues are built and live, and every summary and tag has had an AI review. I read through the tags myself too. The first scheduled weekly run came on 2 November, about 9.5 hours late, and saved new papers. The fact-check runs for the first time on a real issue when the November issue is built on 1 December.
+Both issues are built and live, and every summary and tag has had an AI review. The tags also had a manual read-through. The first scheduled weekly run came on 2 November, about 9.5 hours late, and saved new papers. The fact-check runs for the first time on a real issue when the November issue is built on 1 December.
 
 ## Next
 1. Open the site on a phone in a private window.
-2. Email the issue to myself, then submit.
-3. If there is time, tag 20 papers blind for a real human figure: `python -m src.compare sheet` makes the sheet, and `python -m src.compare score` compares the tags. My read-through so far wasn't blind.
+2. Email the issue to a test inbox, then submit.
+3. If there is time, tag 20 papers blind for a real human figure: `python -m src.compare sheet` makes the sheet, and `python -m src.compare score` compares the tags. The read-through so far wasn't blind.
 
 ## Open problems
-- 58 short summaries are loose, by Codex's reading, and were left as they are. No person has checked the summaries yet, and my check of the tags was a read-through, not a blind test.
+- 58 short summaries are loose, by Codex's reading, and were left as they are. No person has checked the summaries yet, and the manual check of the tags was a read-through, not a blind test.
 - GitHub's schedule is late and unreliable here: scheduled runs have come 5 to 9.5 hours late.
 - Eight series give only a year, so they could not join the backfilled issues.
 - 21 recent JPE papers have no abstract until RePEc lists them. Each run tries again.
